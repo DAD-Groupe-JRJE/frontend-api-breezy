@@ -39,16 +39,16 @@ export default function CreateTweet() {
     }
 
     return (
-        <div className="w-1/3 mx-auto p-4 mt-8 relative">
-            <h1 className="text-3xl font-bold mb-6 text-gray-900">Postez un tweet</h1>
+        <div className="w-full max-w-xl mx-auto p-4 mt-8 relative">
+            <h1 className="text-3xl font-black mb-6 text-primary">Postez un tweet</h1>
 
             {/* ZONE DES NOTIFICATIONS */}
             {notification && (
                 <div
                     className={`mb-4 p-4 rounded-lg font-medium transition-all ${
                         notification.type === "success"
-                            ? "bg-green-100 text-green-700 border border-green-200"
-                            : "bg-red-100 text-red-700 border border-red-200"
+                            ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                            : "bg-red-500/10 text-red-500 border border-red-500/20"
                     }`}
                 >
                     {notification.message}
@@ -58,7 +58,7 @@ export default function CreateTweet() {
             <form
                 ref={formRef}
                 action={publishTweet}
-                className="bg-white shadow-sm rounded-xl p-6 border border-gray-200"
+                className="card"
             >
                 <div className="mb-4">
                     <label htmlFor="content" className="sr-only">Contenu du tweet</label>
@@ -66,18 +66,18 @@ export default function CreateTweet() {
                         id="content"
                         name="content"
                         placeholder="Quoi de neuf ?"
-                        className="w-full p-4 bg-gray-50 text-gray-900 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all"
+                        className="w-full p-4 bg-secondary text-fg border border-border-custom rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none transition-all duration-200"
                         rows="4"
                         maxLength="280"
                         required
                     ></textarea>
                 </div>
 
-                <div className="flex justify-end items-center border-t pt-4 border-gray-100">
-                    <span className="text-sm text-gray-400 mr-4">Max 280 caractères</span>
+                <div className="flex justify-end items-center border-t pt-4 border-border-custom">
+                    <span className="text-sm opacity-50 mr-4">Max 280 caractères</span>
                     <button
                         type="submit"
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition-colors duration-200 shadow-md"
+                        className="bg-primary hover:opacity-90 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 shadow-md cursor-pointer"
                     >
                         Tweeter
                     </button>
@@ -85,4 +85,4 @@ export default function CreateTweet() {
             </form>
         </div>
     );
-}
+}
