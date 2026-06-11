@@ -43,7 +43,7 @@ export default function ThemeSelector() {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="inline-flex justify-between items-center w-40 rounded-lg border border-gray-200/10 bg-black/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 shadow-sm cursor-pointer"
+          className="inline-flex justify-between items-center w-40 rounded-lg border border-border-custom bg-secondary px-4 py-2 text-sm font-medium text-fg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 shadow-sm cursor-pointer"
         >
           <span className="flex items-center gap-2">
             <span>{currentThemeObj.icon}</span>

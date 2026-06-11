@@ -26,7 +26,7 @@ export default async function ListTweet() {
     }
 
     return (
-        <div className="w-full max-w-xl mx-auto mt-8 bg-card border border-border-custom rounded-xl overflow-hidden shadow-sm transition-all duration-250">
+        <div className="w-full max-w-xl mx-auto mt-8 bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-250">
             {/* On parcourt le tableau de tweets.
               On utilise .toReversed() pour afficher les plus récents en haut
               (à moins que ton backend ne les trie déjà, auquel cas enlève .toReversed())

@@ -66,14 +66,14 @@ export default function CreateTweet() {
                         id="content"
                         name="content"
                         placeholder="Quoi de neuf ?"
-                        className="w-full p-4 bg-secondary text-fg border border-border-custom rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none transition-all duration-200"
+                        className="w-full p-4 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none transition-all duration-200"
                         rows="4"
                         maxLength="280"
                         required
                     ></textarea>
                 </div>
 
-                <div className="flex justify-end items-center border-t pt-4 border-border-custom">
+                <div className="flex justify-end items-center border-t pt-4 border-border">
                     <span className="text-sm opacity-50 mr-4">Max 280 caractères</span>
                     <button
                         type="submit"

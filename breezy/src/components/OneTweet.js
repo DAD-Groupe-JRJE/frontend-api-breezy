@@ -55,7 +55,7 @@ export default function OneTweet({ tweet }) {
     };
 
     return (
-        <article className="p-4 border-b border-border-custom hover:bg-secondary/40 transition-colors duration-200 text-fg">
+        <article className="p-4 border-b border-border hover:bg-secondary/40 transition-colors duration-200 text-foreground">
             <div className="flex gap-4">
 
                 {/* Colonne de gauche : Photo de profil */}
@@ -75,7 +75,7 @@ export default function OneTweet({ tweet }) {
 
                         {/* Partie gauche : Nom et Handle */}
                         <Link href={`/user/${dummyUser.handle}`} className="group flex items-center gap-1 min-w-0">
-                            <span className="font-bold text-fg truncate group-hover:underline">
+                            <span className="font-bold text-foreground truncate group-hover:underline">
                                 {dummyUser.name}
                             </span>
                             <span className="opacity-60 text-sm truncate">
@@ -95,7 +95,7 @@ export default function OneTweet({ tweet }) {
 
                     {/* Texte du tweet */}
                     <Link href={`/tweet/${tweet._id}`} className="block mt-1">
-                        <p className="text-fg text-base whitespace-pre-wrap break-words">
+                        <p className="text-foreground text-base whitespace-pre-wrap break-words">
                             {tweet.content}
                         </p>
                     </Link>

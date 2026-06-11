@@ -3,7 +3,7 @@ import ThemeSelector from "./ThemeSelector";
 
 export default function Navbar() {
   return (
-    <nav className="bg-card text-fg border-b border-border-custom px-6 py-4 sticky top-0 z-40 backdrop-blur-md transition-all duration-250 shadow-sm">
+    <nav className="bg-card text-foreground border-b border-border px-6 py-4 sticky top-0 z-40 backdrop-blur-md transition-all duration-250 shadow-sm">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/">
           <span className="text-2xl font-black tracking-tight text-primary cursor-pointer transition-transform hover:scale-105 duration-200">

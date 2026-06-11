@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full flex flex-col bg-bg text-fg transition-colors duration-250">
+      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-250">
         <ThemeProvider>
           <Navbar />
           {children}
