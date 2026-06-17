@@ -19,13 +19,25 @@ export default function UserPage({ params }) {
                 const response = await getUserById(handle);
                 if (response && response.user) {
                     const fetchedUser = response.user;
+                    
+                    const formatJoinDate = (dateString) => {
+                        if (!dateString) return "Récemment";
+                        try {
+                            const date = new Date(dateString);
+                            const formatted = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+                            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+                        } catch (e) {
+                            return "Récemment";
+                        }
+                    };
+
                     setUser({
                         user_id: fetchedUser.userId,
                         user_name: fetchedUser.userName,
                         user_diplayname: fetchedUser.userDisplayName || fetchedUser.userName,
                         user_photo: fetchedUser.userPhoto || `https://ui-avatars.com/api/?name=${fetchedUser.userDisplayName || fetchedUser.userName}&background=random&color=fff&size=150`,
-                        user_bio: fetchedUser.userBio || "Développeur passionné 💻",
-                        joinDate: "Juin 2026",
+                        user_bio: fetchedUser.userBio || "",
+                        joinDate: formatJoinDate(fetchedUser.createdAt),
                         followers: fetchedUser.followersCount || 0,
                         following: fetchedUser.followingCount || 0
                     });
@@ -116,9 +128,16 @@ export default function UserPage({ params }) {
                     @{user.user_name}
                 </p>
 
-                <p className="text-gray-900 text-base mb-3 whitespace-pre-wrap">
-                    {user.user_bio}
-                </p>
+                {user.user_bio && (
+                    <p className="text-gray-900 text-base mb-3 whitespace-pre-wrap">
+                        {user.user_bio}
+                    </p>
+                )}
+
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <FaCalendarAlt className="text-gray-400" />
+                    <span>A rejoint en {user.joinDate}</span>
+                </div>
 
                 <div className="flex items-center gap-4 text-sm">
                     <Link href="#" className="hover:underline">

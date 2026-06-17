@@ -11,6 +11,7 @@ export default function Tweet({ params }) {
     const [responses, setResponses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     const loadData = async () => {
         try {
@@ -27,6 +28,16 @@ export default function Tweet({ params }) {
 
     useEffect(() => {
         loadData();
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("breezy_user");
+            if (userStr) {
+                try {
+                    setCurrentUser(JSON.parse(userStr));
+                } catch (e) {
+                    console.error("Error parsing user from localStorage:", e);
+                }
+            }
+        }
     }, [id]);
 
     async function publishComment(e) {
@@ -73,8 +84,8 @@ export default function Tweet({ params }) {
                 <div className="flex gap-4">
                     <div className="flex-shrink-0 mt-1">
                         <img
-                            src="https://ui-avatars.com/api/?name=User&background=random&color=fff"
-                            alt="Mon avatar"
+                            src={currentUser?.userPhoto || (currentUser ? `https://ui-avatars.com/api/?name=${currentUser.userDisplayName || currentUser.userName}&background=random&color=fff` : "https://ui-avatars.com/api/?name=User&background=random&color=fff")}
+                            alt={currentUser ? `Avatar de ${currentUser.userDisplayName || currentUser.userName}` : "Mon avatar"}
                             className="w-10 h-10 rounded-full object-cover"
                         />
                     </div>
