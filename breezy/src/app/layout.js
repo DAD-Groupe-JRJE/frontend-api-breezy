@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import AuthGuard from "@/components/AuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,8 +40,10 @@ export default function RootLayout({ children }) {
       </head> */}
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-250">
         <ThemeProvider>
-          <Navbar />
-          {children}
+          <AuthGuard>
+            <Navbar />
+            {children}
+          </AuthGuard>
         </ThemeProvider>
       </body>
     </html>
