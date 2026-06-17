@@ -1,44 +1,68 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
-import OneTweet from "@/components/OneTweet"; // Ajuste le chemin
+import OneTweet from "@/components/OneTweet";
+import { getUserById, getTweetsByUser } from "@/utils/api";
 
-export default async function UserPage({ params }) {
-    // 1. Récupération du handle (@) depuis l'URL
-    const { handle } = await params;
+export default function UserPage({ params }) {
+    const { handle } = use(params);
 
-    // 2. Fausse donnée utilisateur (Mock)
-    // Plus tard : const user = await getUserByHandle(handle);
-    const mockUser = {
-        user_id: "user_999xyz",
-        user_email: "test@example.com", // Ne s'affiche pas publiquement
-        user_name: handle, // Le handle sans le @
-        user_diplayname: handle.charAt(0).toUpperCase() + handle.slice(1), // Met une majuscule pour faire joli
-        user_photo: `https://ui-avatars.com/api/?name=${handle}&background=random&color=fff&size=150`,
-        user_bio: "Développeur passionné 💻 | En train de coder un super clone avec Next.js et Node.js !",
-        user_password: "hash", // Ne s'affiche jamais
+    const [user, setUser] = useState(null);
+    const [tweets, setTweets] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-        // Des petites stats bonus qu'on retrouve souvent
-        joinDate: "Juin 2026",
-        followers: 124,
-        following: 42
-    };
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await getUserById(handle);
+                if (response && response.user) {
+                    const fetchedUser = response.user;
+                    setUser({
+                        user_id: fetchedUser.userId,
+                        user_name: fetchedUser.userName,
+                        user_diplayname: fetchedUser.userDisplayName || fetchedUser.userName,
+                        user_photo: fetchedUser.userPhoto || `https://ui-avatars.com/api/?name=${fetchedUser.userDisplayName || fetchedUser.userName}&background=random&color=fff&size=150`,
+                        user_bio: fetchedUser.userBio || "Développeur passionné 💻",
+                        joinDate: "Juin 2026",
+                        followers: fetchedUser.followersCount || 0,
+                        following: fetchedUser.followingCount || 0
+                    });
+                }
 
-    // 3. Faux tweets pour remplir son profil
-    // Plus tard : const userTweets = await getTweetsByUser(mockUser.user_id);
-    const mockTweets = [
-        {
-            _id: "t1",
-            content: "Salut tout le monde ! C'est mon premier tweet sur cette nouvelle appli. 🚀",
-            likes: ["123", "456"],
-            createdAt: new Date().toISOString()
-        },
-        {
-            _id: "t2",
-            content: "Le combo Next.js + Tailwind + Express + MongoDB est vraiment incroyable à utiliser au quotidien.",
-            likes: [],
-            createdAt: new Date(Date.now() - 86400000).toISOString() // Hier
-        }
-    ];
+                const userTweets = await getTweetsByUser(handle);
+                if (userTweets) {
+                    setTweets(userTweets);
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données :", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [handle]);
+
+    if (loading) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center">
+                <p className="text-gray-500">Chargement du profil...</p>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center flex-col">
+                <p className="text-gray-500 mb-4">Cet utilisateur est introuvable.</p>
+                <Link href="/" className="px-4 py-2 bg-blue-500 text-white rounded-full">
+                    Retour à l'accueil
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-2xl mx-auto bg-white border-x border-gray-200 min-h-screen">
@@ -53,10 +77,10 @@ export default async function UserPage({ params }) {
                 </Link>
                 <div>
                     <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                        {mockUser.user_diplayname}
+                        {user.user_diplayname}
                     </h1>
                     <p className="text-sm text-gray-500">
-                        {mockTweets.length} posts
+                        {tweets.length} posts
                     </p>
                 </div>
             </div>
@@ -70,8 +94,8 @@ export default async function UserPage({ params }) {
                 <div className="px-4 flex justify-between items-start relative">
                     <div className="-mt-16 rounded-full p-1 bg-white">
                         <img
-                            src={mockUser.user_photo}
-                            alt={`Photo de profil de ${mockUser.user_diplayname}`}
+                            src={user.user_photo}
+                            alt={`Photo de profil de ${user.user_diplayname}`}
                             className="w-32 h-32 rounded-full object-cover border-4 border-white"
                         />
                     </div>
@@ -86,22 +110,22 @@ export default async function UserPage({ params }) {
             {/* INFORMATIONS DU PROFIL */}
             <div className="px-4 pt-2 pb-4">
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    {mockUser.user_diplayname}
+                    {user.user_diplayname}
                 </h2>
                 <p className="text-gray-500 mb-3">
-                    @{mockUser.user_name}
+                    @{user.user_name}
                 </p>
 
                 <p className="text-gray-900 text-base mb-3 whitespace-pre-wrap">
-                    {mockUser.user_bio}
+                    {user.user_bio}
                 </p>
 
                 <div className="flex items-center gap-4 text-sm">
                     <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{mockUser.following}</span> <span className="text-gray-500">Abonnements</span>
+                        <span className="font-bold text-gray-900">{user.following}</span> <span className="text-gray-500">Abonnements</span>
                     </Link>
                     <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{mockUser.followers}</span> <span className="text-gray-500">Abonnés</span>
+                        <span className="font-bold text-gray-900">{user.followers}</span> <span className="text-gray-500">Abonnés</span>
                     </Link>
                 </div>
             </div>
@@ -121,9 +145,13 @@ export default async function UserPage({ params }) {
 
             {/* FIL DES TWEETS DE L'UTILISATEUR */}
             <div className="bg-white">
-                {mockTweets.map((tweet) => (
-                    <OneTweet key={tweet._id} tweet={tweet} />
-                ))}
+                {tweets.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">Aucun post trouvé.</div>
+                ) : (
+                    tweets.map((tweet) => (
+                        <OneTweet key={tweet._id} tweet={tweet} />
+                    ))
+                )}
             </div>
 
         </div>

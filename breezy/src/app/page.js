@@ -1,5 +1,7 @@
 import ListTweet from "@/components/ListTweet";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main className="flex-1 py-10 px-6 max-w-4xl mx-auto w-full transition-colors duration-250">

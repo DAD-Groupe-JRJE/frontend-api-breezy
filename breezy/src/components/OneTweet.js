@@ -3,15 +3,22 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaHeart, FaRegHeart, FaComment, FaRegComment } from "react-icons/fa";
-import { getTweetsResponse, likeTweet, unlikeTweet } from "@/utils/api";
+import { getTweetsResponse, likeTweet, unlikeTweet, getUserById, getStoredUserId } from "@/utils/api";
 import { formatTimeAgo } from "@/utils/formatDate";
 
 export default function OneTweet({ tweet }) {
-    const currentUserId = "1234abc";
+    const currentUserId = getStoredUserId();
 
     const [isLiked, setIsLiked] = useState(tweet.likes?.includes(currentUserId) || false);
     const [likesCount, setLikesCount] = useState(tweet.likes?.length || 0);
     const [isCommented, setIsCommented] = useState(false);
+    
+    const [user, setUser] = useState({
+        name: "Chargement...",
+        handle: "...",
+        userId: "#",
+        avatar: "https://ui-avatars.com/api/?name=User&background=random&color=fff"
+    });
 
     // État pour stocker le nombre de réponses
     const [commentsCount, setCommentsCount] = useState(0);
@@ -28,13 +35,23 @@ export default function OneTweet({ tweet }) {
         };
 
         fetchComments();
-    }, [tweet._id]);
 
-    const dummyUser = {
-        name: "Utilisateur Mystère",
-        handle: "user_inconnu",
-        avatar: "https://ui-avatars.com/api/?name=Utilisateur+Mystère&background=random&color=fff"
-    };
+        const fetchUser = async () => {
+            if (tweet.idUser) {
+                const response = await getUserById(tweet.idUser);
+                if (response && response.user) {
+                    const fetchedUser = response.user;
+                    setUser({
+                        name: fetchedUser.userDisplayName || fetchedUser.userName,
+                        handle: fetchedUser.userName,
+                        userId: fetchedUser.userId,
+                        avatar: fetchedUser.userPhoto || `https://ui-avatars.com/api/?name=${fetchedUser.userDisplayName || fetchedUser.userName}&background=random&color=fff`
+                    });
+                }
+            }
+        };
+        fetchUser();
+    }, [tweet._id, tweet.idUser]);
 
     const handleLike = (e) => {
         e.preventDefault();
@@ -61,8 +78,8 @@ export default function OneTweet({ tweet }) {
                 {/* Colonne de gauche : Photo de profil */}
                 <div className="flex-shrink-0">
                     <img
-                        src={dummyUser.avatar}
-                        alt={`Avatar de ${dummyUser.name}`}
+                        src={user.avatar}
+                        alt={`Avatar de ${user.name}`}
                         className="w-10 h-10 rounded-full object-cover"
                     />
                 </div>
@@ -74,12 +91,12 @@ export default function OneTweet({ tweet }) {
                     <div className="flex items-center justify-between mb-1">
 
                         {/* Partie gauche : Nom et Handle */}
-                        <Link href={`/user/${dummyUser.handle}`} className="group flex items-center gap-1 min-w-0">
+                        <Link href={`/user/${user.userId}`} className="group flex items-center gap-1 min-w-0">
                             <span className="font-bold text-foreground truncate group-hover:underline">
-                                {dummyUser.name}
+                                {user.name}
                             </span>
                             <span className="opacity-60 text-sm truncate">
-                                @{dummyUser.handle}
+                                @{user.handle}
                             </span>
                         </Link>
 

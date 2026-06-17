@@ -1,19 +1,61 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import { createNewTweet, getOneTweet, getTweetsResponse } from "@/utils/api";
-import OneTweet from "@/components/OneTweet"; // Ajuste le chemin si besoin
-import { revalidatePath } from "next/cache"; // INDISPENSABLE pour rafraîchir la page après l'ajout
+import OneTweet from "@/components/OneTweet";
 
-export default async function Tweet({ params }) {
-    // 1. On récupère l'ID depuis l'URL
-    const { id } = await params;
+export default function Tweet({ params }) {
+    const { id } = use(params);
 
-    let tweet;
-    let responses = [];
+    const [tweet, setTweet] = useState(null);
+    const [responses, setResponses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    // On sécurise la récupération des données
-    try {
-        tweet = await getOneTweet(id);
-        responses = await getTweetsResponse(id);
-    } catch (error) {
+    const loadData = async () => {
+        try {
+            const fetchedTweet = await getOneTweet(id);
+            setTweet(fetchedTweet);
+            const fetchedResponses = await getTweetsResponse(id);
+            setResponses(fetchedResponses || []);
+        } catch (err) {
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, [id]);
+
+    async function publishComment(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const content = formData.get("content");
+
+        if (!content || content.trim() === "") return;
+
+        try {
+            await createNewTweet(content, id);
+            e.target.reset();
+            // On recharge les données pour afficher le nouveau commentaire
+            await loadData();
+        } catch (error) {
+            console.error("Erreur lors de la réponse au tweet :", error);
+            alert("Erreur lors de la publication de la réponse.");
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="max-w-2xl mx-auto mt-12 p-6 text-center text-gray-500">
+                Chargement du tweet...
+            </div>
+        );
+    }
+
+    if (error || !tweet) {
         return (
             <div className="max-w-2xl mx-auto mt-12 p-6 bg-red-50 border border-red-200 rounded-xl text-center text-red-600">
                 Impossible de charger ce tweet ou ses réponses. Il a peut-être été supprimé.
@@ -21,24 +63,8 @@ export default async function Tweet({ params }) {
         );
     }
 
-    // 2. Fonction pour gérer la publication du commentaire
-    async function publishComment(formData) {
-        "use server";
-
-        const content = formData.get("content");
-
-        if (!content || content.trim() === "") return;
-
-        // On envoie le contenu ET l'id du tweet parent (belongTo)
-        await createNewTweet(content, id);
-
-        // On dit à Next.js de rafraîchir les données de cette page spécifique
-        revalidatePath(`/tweet/${id}`);
-    }
-
     return (
         <div className="w-1/3 mx-auto mt-8 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-
             {/* L'AFFICHAGE DU TWEET PRINCIPAL */}
             <OneTweet tweet={tweet} />
 
@@ -47,13 +73,13 @@ export default async function Tweet({ params }) {
                 <div className="flex gap-4">
                     <div className="flex-shrink-0 mt-1">
                         <img
-                            src="https://ui-avatars.com/api/?name=Moi&background=random&color=fff"
+                            src="https://ui-avatars.com/api/?name=User&background=random&color=fff"
                             alt="Mon avatar"
                             className="w-10 h-10 rounded-full object-cover"
                         />
                     </div>
 
-                    <form action={publishComment} className="flex-1">
+                    <form onSubmit={publishComment} className="flex-1">
                         <label htmlFor="content" className="sr-only">Postez votre réponse</label>
                         <textarea
                             id="content"
@@ -89,7 +115,6 @@ export default async function Tweet({ params }) {
                     </div>
                 )}
             </div>
-
         </div>
     );
 }

@@ -1,12 +1,23 @@
 "use client"; // Indispensable pour utiliser useState, useRef et setTimeout
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createNewTweet } from "@/utils/api";
 
 export default function CreateTweet() {
+    const router = useRouter();
     // État pour gérer la notification { type: "success" | "error", message: "..." }
     const [notification, setNotification] = useState(null);
     const formRef = useRef(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("breezy_jwt");
+            if (!token) {
+                router.push("/login");
+            }
+        }
+    }, [router]);
 
     async function publishTweet(formData) {
         // 1. On réinitialise les notifications à chaque nouvelle tentative
