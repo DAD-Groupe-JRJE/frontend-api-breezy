@@ -38,7 +38,9 @@ export default function RootLayout({ children }) {
       {/* <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head> */}
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-250">
+      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-250"
+        cz-shortcut-listen="true"
+      >
         <ThemeProvider>
           <AuthGuard>
             <Navbar />

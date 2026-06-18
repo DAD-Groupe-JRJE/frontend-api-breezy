@@ -2,9 +2,9 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
+import { FaArrowLeft, FaCalendarAlt, FaBan, FaUserCheck } from "react-icons/fa";
 import OneTweet from "@/components/OneTweet";
-import { getUserById, getTweetsByUser } from "@/utils/api";
+import { getUserById, getTweetsByUser, suspendUser, unsuspendUser } from "@/utils/api";
 
 export default function UserPage({ params }) {
     const { handle } = use(params);
@@ -12,8 +12,21 @@ export default function UserPage({ params }) {
     const [user, setUser] = useState(null);
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("breezy_user");
+            if (userStr) {
+                try {
+                    setCurrentUser(JSON.parse(userStr));
+                } catch (e) {
+                    console.error("Error parsing user from localStorage:", e);
+                }
+            }
+        }
+
         const loadData = async () => {
             try {
                 const response = await getUserById(handle);
@@ -39,7 +52,9 @@ export default function UserPage({ params }) {
                         user_bio: fetchedUser.userBio || "",
                         joinDate: formatJoinDate(fetchedUser.createdAt),
                         followers: fetchedUser.followersCount || 0,
-                        following: fetchedUser.followingCount || 0
+                        following: fetchedUser.followingCount || 0,
+                        role: fetchedUser.role || "user",
+                        isSuspended: fetchedUser.isSuspended || false
                     });
                 }
 
@@ -56,6 +71,24 @@ export default function UserPage({ params }) {
 
         loadData();
     }, [handle]);
+
+    const handleToggleSuspend = async () => {
+        if (!user || !currentUser) return;
+        setActionLoading(true);
+        try {
+            if (user.isSuspended) {
+                await unsuspendUser(user.user_id);
+                setUser((prev) => ({ ...prev, isSuspended: false }));
+            } else {
+                await suspendUser(user.user_id);
+                setUser((prev) => ({ ...prev, isSuspended: true }));
+            }
+        } catch (err) {
+            alert("Erreur lors du changement de statut de suspension.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -111,19 +144,41 @@ export default function UserPage({ params }) {
                             className="w-32 h-32 rounded-full object-cover border-4 border-white"
                         />
                     </div>
-                    <div className="pt-3">
-                        <button className="px-4 py-1.5 font-bold border border-gray-300 rounded-full hover:bg-gray-100 transition duration-200 text-gray-900">
-                            Éditer le profil
-                        </button>
+                    <div className="pt-3 flex gap-2">
+                        {currentUser && currentUser.userId === user.user_id && (
+                            <button className="px-4 py-1.5 font-bold border border-gray-300 rounded-full hover:bg-gray-100 transition duration-200 text-gray-900">
+                                Éditer le profil
+                            </button>
+                        )}
+                        {currentUser && (currentUser.role === "admin" || currentUser.role === "moderator") && currentUser.userId !== user.user_id && user.role !== "admin" && (
+                            <button
+                                onClick={handleToggleSuspend}
+                                disabled={actionLoading}
+                                className={`px-4 py-1.5 font-bold rounded-full text-white transition duration-200 cursor-pointer flex items-center gap-1 ${
+                                    user.isSuspended
+                                        ? "bg-green-500 hover:bg-green-600"
+                                        : "bg-red-500 hover:bg-red-600"
+                                }`}
+                            >
+                                {actionLoading ? "En cours..." : user.isSuspended ? "Réactiver le compte" : "Suspendre le compte"}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* INFORMATIONS DU PROFIL */}
             <div className="px-4 pt-2 pb-4">
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    {user.user_diplayname}
-                </h2>
+                <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                        {user.user_diplayname}
+                    </h2>
+                    {user.isSuspended && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-red-500/10 text-red-500 px-2.5 py-0.5 rounded-full border border-red-500/20">
+                            <FaBan size={10} /> Suspendu
+                        </span>
+                    )}
+                </div>
                 <p className="text-gray-500 mb-3">
                     @{user.user_name}
                 </p>

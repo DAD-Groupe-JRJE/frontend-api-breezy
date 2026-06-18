@@ -168,3 +168,33 @@ export const getUserById = async (userId) => {
     }
 };
 
+export const getAllUsers = async () => {
+    try {
+        const response = await apiClient.get("/api/users");
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de tous les utilisateurs :", error);
+        throw error;
+    }
+};
+
+export const suspendUser = async (userId) => {
+    try {
+        const response = await apiClient.post(`/api/users/${userId}/suspend`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la suspension de l'utilisateur :", error);
+        throw error;
+    }
+};
+
+export const unsuspendUser = async (userId) => {
+    try {
+        const response = await apiClient.post(`/api/users/${userId}/unsuspend`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la réactivation de l'utilisateur :", error);
+        throw error;
+    }
+};
+

@@ -54,6 +54,13 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           {user ? (
             <>
+              {(user.role === "admin" || user.role === "moderator") && (
+                <Link href="/moderation">
+                  <span className="text-sm font-semibold opacity-80 hover:text-primary transition-colors cursor-pointer flex items-center gap-1">
+                    Modération
+                  </span>
+                </Link>
+              )}
               <Link href="/tweet/create">
                 <span className="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-full transition-all duration-200 shadow-md hover:opacity-90 cursor-pointer">
                   Écrire un tweet

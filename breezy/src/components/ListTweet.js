@@ -1,14 +1,61 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getAllTweets } from "@/utils/api";
 import OneTweet from "./OneTweet"; // Ajuste le chemin selon où tu as placé ton composant
 
-// On ajoute 'async' ici pour pouvoir utiliser 'await' dans le composant
-export default async function ListTweet() {
-    let tweets = [];
+export default function ListTweet() {
+    const [tweets, setTweets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [isGuest, setIsGuest] = useState(false);
 
-    try {
-        // On attend que la requête se termine avant d'afficher la page
-        tweets = await getAllTweets();
-    } catch (error) {
+    useEffect(() => {
+        // Vérification de la présence d'un token avant d'initier la requête
+        const token = localStorage.getItem("breezy_jwt");
+        if (!token) {
+            setIsGuest(true);
+            setLoading(false);
+            return;
+        }
+
+        const fetchTweets = async () => {
+            try {
+                const data = await getAllTweets();
+                setTweets(data || []);
+            } catch (err) {
+                console.error("Error fetching tweets:", err);
+                if (err.response?.status === 401) {
+                    setIsGuest(true);
+                } else {
+                    setError(true);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTweets();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="p-8 text-center text-gray-500">
+                Chargement des messages...
+            </div>
+        );
+    }
+
+    if (isGuest) {
+        return (
+            <div className="p-8 text-center text-gray-500 bg-secondary/20 rounded-xl border border-dashed border-border max-w-md mx-auto mt-8">
+                <p className="font-semibold mb-2">Bienvenue sur Breezy !</p>
+                <p className="text-sm opacity-80 mb-4">Veuillez vous connecter pour voir le flux chronologique des messages.</p>
+            </div>
+        );
+    }
+
+    if (error) {
         return (
             <div className="p-4 text-center text-red-500">
                 Impossible de charger les tweets pour le moment.
@@ -29,7 +76,6 @@ export default async function ListTweet() {
         <div className="w-full max-w-xl mx-auto mt-8 bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-250">
             {/* On parcourt le tableau de tweets.
               On utilise .toReversed() pour afficher les plus récents en haut
-              (à moins que ton backend ne les trie déjà, auquel cas enlève .toReversed())
             */}
             {tweets.toReversed().map((tweet) => (
                 <OneTweet
