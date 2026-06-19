@@ -91,7 +91,7 @@ export default function OneTweet({ tweet }) {
                     <div className="flex items-center justify-between mb-1">
 
                         {/* Partie gauche : Nom et Handle */}
-                        <Link href={`/user/${user.userId}`} className="group flex items-center gap-1 min-w-0">
+                        <Link href={`/user/${user.handle}`} className="group flex items-center gap-1 min-w-0">
                             <span className="font-bold text-foreground truncate group-hover:underline">
                                 {user.name}
                             </span>

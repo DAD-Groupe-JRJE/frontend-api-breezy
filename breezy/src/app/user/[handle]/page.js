@@ -56,11 +56,11 @@ export default function UserPage({ params }) {
                         role: fetchedUser.role || "user",
                         isSuspended: fetchedUser.isSuspended || false
                     });
-                }
 
-                const userTweets = await getTweetsByUser(handle);
-                if (userTweets) {
-                    setTweets(userTweets);
+                    const userTweets = await getTweetsByUser(fetchedUser.userId);
+                    if (userTweets) {
+                        setTweets(userTweets);
+                    }
                 }
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
