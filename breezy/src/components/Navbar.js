@@ -67,7 +67,7 @@ export default function Navbar() {
                 </span>
               </Link>
               <span className="text-sm opacity-80 hidden md:inline">
-                Bonjour, <strong className="text-primary">{user.userDisplayName || user.userName}</strong>
+                Bonjour, <Link href="/user/me" className="text-primary hover:underline cursor-pointer font-bold">@{user.userName}</Link>
               </span>
               <button
                 onClick={handleLogout}

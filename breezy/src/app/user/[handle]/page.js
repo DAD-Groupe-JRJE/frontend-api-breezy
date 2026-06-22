@@ -4,8 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import {FaArrowLeft, FaCalendarAlt, FaPen} from "react-icons/fa";
 import OneTweet from "@/components/OneTweet";
-import {getUserById, getTweetsByUser, getConnectedUserInfo} from "@/utils/api";
-import {error} from "next/dist/build/output/log";
+import {getUserById, getTweetsByUser, getConnectedUserInfo, followUser, unfollowUser} from "@/utils/api";
 
 export default function UserPage({ params }) {
     const { handle } = use(params);
@@ -63,6 +62,30 @@ export default function UserPage({ params }) {
         };
         loadData();
     }, [handle]);
+
+    const handleFollowToggle = async () => {
+        if (!userConnected) {
+            setErrorMsg("Vous devez être connecté pour suivre un utilisateur.");
+            return;
+        }
+        try {
+            setErrorMsg("");
+            if (user.isFollowing) {
+                const updatedProfile = await unfollowUser(user.userId);
+                if (updatedProfile && updatedProfile.user) {
+                    setUser(updatedProfile.user);
+                }
+            } else {
+                const updatedProfile = await followUser(user.userId);
+                if (updatedProfile && updatedProfile.user) {
+                    setUser(updatedProfile.user);
+                }
+            }
+        } catch (error) {
+            console.error("Erreur lors du changement d'abonnement :", error);
+            setErrorMsg(error.message || "Erreur lors du changement d'abonnement.");
+        }
+    };
 
     // Formatage simple des dates
     const formatDate = (dateString) => {
@@ -140,13 +163,14 @@ export default function UserPage({ params }) {
                                     Éditer le profil
                                 </button> :
                                 <button
+                                    onClick={handleFollowToggle}
                                     className={`px-6 py-2 font-bold rounded-full transition duration-200 shadow-sm ${
                                         user.isFollowing
                                             ? "bg-white border border-gray-300 text-gray-900 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                                             : "bg-gray-900 text-white hover:bg-gray-800"
                                     }`}
                                 >
-                                    {user.isFollowing ? "Abonné" : "S'abonner"}
+                                    {user.isFollowing ? "Se désabonner" : "S'abonner"}
                                 </button>
                         }
                     </div>

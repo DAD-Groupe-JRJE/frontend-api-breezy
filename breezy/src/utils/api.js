@@ -279,3 +279,22 @@ export const unsuspendUser = async (userId) => {
     }
 };
 
+export const followUser = async (userId) => {
+    try {
+        const response = await apiClient.post(`/api/users/${userId}/follow`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors du suivi de l'utilisateur :", error);
+        throw error;
+    }
+};
+
+export const unfollowUser = async (userId) => {
+    try {
+        const response = await apiClient.delete(`/api/users/${userId}/follow`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de l'arrêt du suivi de l'utilisateur :", error);
+        throw error;
+    }
+};
