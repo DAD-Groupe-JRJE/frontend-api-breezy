@@ -16,10 +16,12 @@ export default function UserPage({ params }) {
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isMyProfile, setIsMyProfile] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
         const loadData = async () => {
             try {
+                setErrorMsg("");
                 let tempUserConnected = null;
 
                 const userStr = localStorage.getItem("breezy_user");
@@ -36,6 +38,10 @@ export default function UserPage({ params }) {
 
                 setLoading(true);
                 let user = await getUserById(handle);
+                if (!user) {
+                    setErrorMsg("Cet utilisateur est introuvable.");
+                    return;
+                }
                 setUser(user.user);
 
                 user = user.user
@@ -50,6 +56,7 @@ export default function UserPage({ params }) {
                 }
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
+                setErrorMsg(error.message || "Erreur de connexion.");
             } finally {
                 setLoading(false);
             }
@@ -69,6 +76,19 @@ export default function UserPage({ params }) {
         return (
             <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center">
                 <p className="text-gray-500">Chargement du profil...</p>
+            </div>
+        );
+    }
+
+    if (errorMsg) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center flex-col p-4">
+                <div className="p-4 text-center text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg max-w-md mx-auto mb-4 text-sm font-medium">
+                    {errorMsg}
+                </div>
+                <Link href="/" className="px-5 py-2.5 bg-primary text-white font-bold rounded-full text-sm hover:opacity-90 transition">
+                    Retour à l'accueil
+                </Link>
             </div>
         );
     }

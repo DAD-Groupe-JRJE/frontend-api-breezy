@@ -15,6 +15,8 @@ export default function AuthGuard({ children }) {
 
         if (!token && !publicPaths.includes(pathname)) {
             router.push('/login');
+        } else if (token && publicPaths.includes(pathname)) {
+            router.push('/');
         }
     }, [pathname, router]);
 
@@ -26,6 +28,10 @@ export default function AuthGuard({ children }) {
     const token = localStorage.getItem('breezy_jwt');
     
     if (!token && !publicPaths.includes(pathname)) {
+        return null; // Redirection en cours
+    }
+
+    if (token && publicPaths.includes(pathname)) {
         return null; // Redirection en cours
     }
 

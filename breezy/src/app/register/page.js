@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { register, login } from "@/utils/api";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const DISPLAY_NAME_REGEX = /^[a-zA-Z0-9\s\-_'’À-ÿ]{2,30}$/;
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 export default function RegisterPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -17,6 +22,28 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        // Frontend Validations
+        if (!EMAIL_REGEX.test(email)) {
+            setError("L'adresse email n'est pas valide.");
+            return;
+        }
+
+        if (!USERNAME_REGEX.test(username)) {
+            setError("Le nom d'utilisateur doit contenir entre 3 et 20 caractères (lettres, chiffres et tirets bas uniquement).");
+            return;
+        }
+
+        if (!DISPLAY_NAME_REGEX.test(displayName)) {
+            setError("Le nom d'affichage doit contenir entre 2 et 30 caractères autorisés.");
+            return;
+        }
+
+        if (!PASSWORD_REGEX.test(password)) {
+            setError("Le mot de passe doit contenir au moins 8 caractères, incluant au moins une lettre et un chiffre.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -39,7 +66,7 @@ export default function RegisterPage() {
                 router.push("/login?registered=true");
             }
         } catch (err) {
-            setError(err.response?.data?.message || err.response?.data?.error || "Une erreur est survenue lors de l'inscription.");
+            setError(err.message || "Une erreur est survenue lors de l'inscription.");
         } finally {
             setLoading(false);
         }
@@ -71,6 +98,7 @@ export default function RegisterPage() {
                             placeholder="exemple@email.com"
                             className="w-full p-3 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200"
                         />
+                        <p className="text-xs mt-1 text-foreground/50">Exemple : nom@domaine.com</p>
                     </div>
 
                     <div>
@@ -86,6 +114,11 @@ export default function RegisterPage() {
                             placeholder="username"
                             className="w-full p-3 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200"
                         />
+                        <p className={`text-xs mt-1 transition-colors duration-200 ${
+                            username && !USERNAME_REGEX.test(username) ? "text-red-500 font-medium" : "text-foreground/50"
+                        }`}>
+                            3 à 20 caractères (lettres, chiffres et '_' uniquement)
+                        </p>
                     </div>
 
                     <div>
@@ -101,6 +134,11 @@ export default function RegisterPage() {
                             placeholder="Jean Dupont"
                             className="w-full p-3 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200"
                         />
+                        <p className={`text-xs mt-1 transition-colors duration-200 ${
+                            displayName && !DISPLAY_NAME_REGEX.test(displayName) ? "text-red-500 font-medium" : "text-foreground/50"
+                        }`}>
+                            2 à 30 caractères
+                        </p>
                     </div>
 
                     <div>
@@ -116,6 +154,11 @@ export default function RegisterPage() {
                             placeholder="••••••••"
                             className="w-full p-3 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200"
                         />
+                        <p className={`text-xs mt-1 transition-colors duration-200 ${
+                            password && !PASSWORD_REGEX.test(password) ? "text-red-500 font-medium" : "text-foreground/50"
+                        }`}>
+                            Au moins 8 caractères, avec 1 lettre et 1 chiffre
+                        </p>
                     </div>
 
                     <button

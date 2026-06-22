@@ -53,18 +53,26 @@ export default function OneTweet({ tweet }) {
         fetchUser();
     }, [tweet._id, tweet.idUser]);
 
-    const handleLike = (e) => {
+    const handleLike = async (e) => {
         e.preventDefault();
 
-        if (isLiked) {
-            setLikesCount((prev) => prev - 1);
-            unlikeTweet(tweet._id);
-        } else {
-            setLikesCount((prev) => prev + 1);
-            likeTweet(tweet._id);
-        }
+        const originalLiked = isLiked;
+        setIsLiked(!originalLiked);
+        setLikesCount((prev) => (originalLiked ? prev - 1 : prev + 1));
 
-        setIsLiked(!isLiked);
+        try {
+            if (originalLiked) {
+                await unlikeTweet(tweet._id);
+            } else {
+                await likeTweet(tweet._id);
+            }
+        } catch (error) {
+            console.error("Erreur lors du like/unlike :", error);
+            // Rollback
+            setIsLiked(originalLiked);
+            setLikesCount((prev) => (originalLiked ? prev + 1 : prev - 1));
+            alert(error.message || "Impossible de mettre à jour le like.");
+        }
     };
 
     const handleComment = (e) => {

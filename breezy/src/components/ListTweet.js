@@ -7,7 +7,7 @@ import OneTweet from "./OneTweet"; // Ajuste le chemin selon où tu as placé to
 export default function ListTweet() {
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState("");
     const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
@@ -25,10 +25,10 @@ export default function ListTweet() {
                 setTweets(data || []);
             } catch (err) {
                 console.error("Error fetching tweets:", err);
-                if (err.response?.status === 401) {
+                if (err.status === 401 || err.response?.status === 401) {
                     setIsGuest(true);
                 } else {
-                    setError(true);
+                    setError(err.message || "Impossible de charger les tweets.");
                 }
             } finally {
                 setLoading(false);
@@ -57,8 +57,8 @@ export default function ListTweet() {
 
     if (error) {
         return (
-            <div className="p-4 text-center text-red-500">
-                Impossible de charger les tweets pour le moment.
+            <div className="p-4 text-center text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg max-w-md mx-auto mt-8 text-sm font-medium">
+                {error}
             </div>
         );
     }

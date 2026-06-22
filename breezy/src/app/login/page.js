@@ -15,6 +15,17 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (!emailOrUsername.trim()) {
+            setError("Veuillez saisir votre email ou votre nom d'utilisateur.");
+            return;
+        }
+
+        if (!password) {
+            setError("Veuillez saisir votre mot de passe.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -32,7 +43,7 @@ export default function LoginPage() {
                 setError("Identifiants incorrects ou réponse invalide.");
             }
         } catch (err) {
-            setError(err.response?.data?.message || err.response?.data?.error || "Une erreur est survenue lors de la connexion.");
+            setError(err.message || "Une erreur est survenue lors de la connexion.");
         } finally {
             setLoading(false);
         }

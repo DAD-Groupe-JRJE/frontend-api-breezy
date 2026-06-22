@@ -21,6 +21,77 @@ apiClient.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+// Intercepteur pour normaliser les erreurs de réponse
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        let cleanMessage = "Une erreur inattendue est survenue.";
+
+        if (error.response) {
+            // Le serveur a répondu avec un statut en dehors de la plage 2xx
+            let apiMessage = error.response.data?.message || error.response.data?.error;
+            if (apiMessage) {
+                // Traduction des messages d'erreur courants en français
+                if (apiMessage.toLowerCase() === "invalid credentials" || apiMessage.toLowerCase() === "unauthorized") {
+                    cleanMessage = "Identifiants incorrects";
+                } else if (apiMessage.toLowerCase() === "your account has been suspended" || apiMessage.toLowerCase() === "forbidden: connected account is suspended") {
+                    cleanMessage = "Votre compte a été suspendu";
+                } else if (apiMessage.toLowerCase() === "missing credentials") {
+                    cleanMessage = "Veuillez renseigner tous les identifiants requis";
+                } else if (apiMessage.toLowerCase() === "user not found") {
+                    cleanMessage = "Utilisateur introuvable";
+                } else {
+                    cleanMessage = apiMessage;
+                }
+            } else {
+                switch (error.response.status) {
+                    case 400:
+                        cleanMessage = "Requête invalide.";
+                        break;
+                    case 401:
+                        cleanMessage = "Session expirée ou accès non autorisé.";
+                        break;
+                    case 403:
+                        cleanMessage = "Accès interdit. Vous n'avez pas les permissions nécessaires.";
+                        break;
+                    case 404:
+                        cleanMessage = "Ressource introuvable.";
+                        break;
+                    case 409:
+                        cleanMessage = "Conflit : Cette ressource existe déjà.";
+                        break;
+                    default:
+                        if (error.response.status >= 500) {
+                            cleanMessage = "Erreur interne du serveur. Veuillez réessayer plus tard.";
+                        }
+                }
+            }
+
+            // Déconnexion automatique en cas de token invalide/expiré (401)
+            if (error.response.status === 401 && typeof window !== "undefined") {
+                const token = localStorage.getItem("breezy_jwt");
+                if (token) {
+                    localStorage.removeItem("breezy_jwt");
+                    localStorage.removeItem("breezy_user");
+                    window.dispatchEvent(new Event("auth-change"));
+                }
+            }
+        } else if (error.request) {
+            // Pas de réponse reçue
+            cleanMessage = "Le serveur est inaccessible. Veuillez vérifier si le service est démarré.";
+        } else {
+            // Autre erreur
+            cleanMessage = error.message;
+        }
+
+        const apiError = new Error(cleanMessage);
+        apiError.status = error.response?.status;
+        apiError.originalError = error;
+
+        return Promise.reject(apiError);
+    }
+);
+
 // Helper pour récupérer l'idUser depuis le localStorage s'il existe
 export const getStoredUserId = () => {
     if (typeof window !== "undefined") {
