@@ -138,6 +138,16 @@ export const getAllTweets = async () => {
     }
 }
 
+export const getFollowedTweets = async () => {
+    try {
+        const response = await apiClient.get("/api/tweet/followed");
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des tweets suivis :", error);
+        throw error;
+    }
+}
+
 export const getOneTweet = async (idTweet) => {
     try {
         const response = await apiClient.get("/api/tweet/" + idTweet);
@@ -164,7 +174,7 @@ export const getTweetsByUser = async (userId) => {
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la récupération des tweets de l'utilisateur :", error);
-        return [];
+        throw error;
     }
 }
 

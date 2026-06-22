@@ -16,11 +16,13 @@ export default function UserPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [isMyProfile, setIsMyProfile] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [tweetsError, setTweetsError] = useState("");
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 setErrorMsg("");
+                setTweetsError("");
                 let tempUserConnected = null;
 
                 const userStr = localStorage.getItem("breezy_user");
@@ -50,8 +52,13 @@ export default function UserPage({ params }) {
                 }
 
                 if (user && user.userId) {
-                    const userTweets = await getTweetsByUser(user.userId);
-                    setTweets(userTweets || []);
+                    try {
+                        const userTweets = await getTweetsByUser(user.userId);
+                        setTweets(userTweets || []);
+                    } catch (err) {
+                        console.error("Erreur tweets:", err);
+                        setTweetsError(err.message || "Accès refusé.");
+                    }
                 }
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
@@ -217,7 +224,11 @@ export default function UserPage({ params }) {
                 </div>
 
                 <div className="flex flex-col">
-                    {tweets && tweets.length > 0 ? (
+                    {tweetsError ? (
+                        <div className="p-16 text-center text-red-500 bg-red-500/5 font-medium border-t border-gray-100">
+                            {tweetsError}
+                        </div>
+                    ) : tweets && tweets.length > 0 ? (
                         tweets.toReversed().map((tweet) => (
                             <OneTweet key={tweet._id} tweet={tweet} />
                         ))
