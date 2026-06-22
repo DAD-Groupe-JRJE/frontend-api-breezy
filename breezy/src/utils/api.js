@@ -168,6 +168,16 @@ export const getUserById = async (userId) => {
     }
 };
 
+export const getConnectedUserInfo = async () => {
+    try {
+        const response = await apiClient.get("/api/users/me");
+        return response.data.user;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'utilisateur :", error);
+        return null;
+    }
+};
+
 export const getAllUsers = async () => {
     try {
         const response = await apiClient.get("/api/users");

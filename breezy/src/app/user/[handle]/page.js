@@ -2,65 +2,51 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { FaArrowLeft, FaCalendarAlt, FaBan, FaUserCheck } from "react-icons/fa";
+import {FaArrowLeft, FaCalendarAlt, FaPen} from "react-icons/fa";
 import OneTweet from "@/components/OneTweet";
-import { getUserById, getTweetsByUser, suspendUser, unsuspendUser } from "@/utils/api";
+import {getUserById, getTweetsByUser, getConnectedUserInfo} from "@/utils/api";
+import {error} from "next/dist/build/output/log";
 
 export default function UserPage({ params }) {
     const { handle } = use(params);
 
     const [user, setUser] = useState(null);
+    const [userConnected, setUserConnected] = useState(null);
+
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [actionLoading, setActionLoading] = useState(false);
+    const [isMyProfile, setIsMyProfile] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== "undefined") {
-            const userStr = localStorage.getItem("breezy_user");
-            if (userStr) {
-                try {
-                    setCurrentUser(JSON.parse(userStr));
-                } catch (e) {
-                    console.error("Error parsing user from localStorage:", e);
-                }
-            }
-        }
-
         const loadData = async () => {
             try {
-                const response = await getUserById(handle);
-                if (response && response.user) {
-                    const fetchedUser = response.user;
-                    
-                    const formatJoinDate = (dateString) => {
-                        if (!dateString) return "Récemment";
-                        try {
-                            const date = new Date(dateString);
-                            const formatted = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-                            return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-                        } catch (e) {
-                            return "Récemment";
-                        }
-                    };
+                let tempUserConnected = null;
 
-                    setUser({
-                        user_id: fetchedUser.userId,
-                        user_name: fetchedUser.userName,
-                        user_diplayname: fetchedUser.userDisplayName || fetchedUser.userName,
-                        user_photo: fetchedUser.userPhoto || `https://ui-avatars.com/api/?name=${fetchedUser.userDisplayName || fetchedUser.userName}&background=random&color=fff&size=150`,
-                        user_bio: fetchedUser.userBio || "",
-                        joinDate: formatJoinDate(fetchedUser.createdAt),
-                        followers: fetchedUser.followersCount || 0,
-                        following: fetchedUser.followingCount || 0,
-                        role: fetchedUser.role || "user",
-                        isSuspended: fetchedUser.isSuspended || false
-                    });
-
-                    const userTweets = await getTweetsByUser(fetchedUser.userId);
-                    if (userTweets) {
-                        setTweets(userTweets);
+                const userStr = localStorage.getItem("breezy_user");
+                if (userStr) {
+                    try {
+                        tempUserConnected = JSON.parse(userStr);
+                        setUserConnected(tempUserConnected);
+                    } catch (e) {
+                        setUserConnected(null);
                     }
+                } else {
+                    setUserConnected(null);
+                }
+
+                setLoading(true);
+                let user = await getUserById(handle);
+                setUser(user.user);
+
+                user = user.user
+
+                if (user && tempUserConnected && user.userId === tempUserConnected.userId) {
+                    setIsMyProfile(true);
+                }
+
+                if (user && user.userId) {
+                    const userTweets = await getTweetsByUser(user.userId);
+                    setTweets(userTweets || []);
                 }
             } catch (error) {
                 console.error("Erreur lors de la récupération des données :", error);
@@ -68,26 +54,15 @@ export default function UserPage({ params }) {
                 setLoading(false);
             }
         };
-
         loadData();
     }, [handle]);
 
-    const handleToggleSuspend = async () => {
-        if (!user || !currentUser) return;
-        setActionLoading(true);
-        try {
-            if (user.isSuspended) {
-                await unsuspendUser(user.user_id);
-                setUser((prev) => ({ ...prev, isSuspended: false }));
-            } else {
-                await suspendUser(user.user_id);
-                setUser((prev) => ({ ...prev, isSuspended: true }));
-            }
-        } catch (err) {
-            alert("Erreur lors du changement de statut de suspension.");
-        } finally {
-            setActionLoading(false);
-        }
+    // Formatage simple des dates
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleString("fr-FR", {
+            day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
     };
 
     if (loading) {
@@ -109,123 +84,106 @@ export default function UserPage({ params }) {
         );
     }
 
+
     return (
-        <div className="max-w-2xl mx-auto bg-white border-x border-gray-200 min-h-screen">
+        <div className="w-[80%] mx-auto py-8 min-h-screen flex flex-col gap-6">
 
-            {/* EN-TÊTE FIXE (Header) */}
-            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-2 flex items-center gap-6">
-                <Link
-                    href="/"
-                    className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
-                >
-                    <FaArrowLeft className="text-gray-800" />
+            {/* BOUTON RETOUR */}
+            <div>
+                <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition text-gray-800 font-medium w-fit shadow-sm">
+                    <FaArrowLeft />
+                    Retour
                 </Link>
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                        {user.user_diplayname}
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                        {tweets.length} posts
-                    </p>
-                </div>
             </div>
 
-            {/* BANNIÈRE ET AVATAR */}
-            <div className="relative">
-                {/* Bannière (Couleur unie temporaire) */}
-                <div className="h-48 bg-slate-200 w-full object-cover"></div>
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
 
-                {/* Avatar flottant et Bouton Éditer */}
-                <div className="px-4 flex justify-between items-start relative">
-                    <div className="-mt-16 rounded-full p-1 bg-white">
-                        <img
-                            src={user.user_photo}
-                            alt={`Photo de profil de ${user.user_diplayname}`}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-white"
-                        />
-                    </div>
-                    <div className="pt-3 flex gap-2">
-                        {currentUser && currentUser.userId === user.user_id && (
-                            <button className="px-4 py-1.5 font-bold border border-gray-300 rounded-full hover:bg-gray-100 transition duration-200 text-gray-900">
-                                Éditer le profil
-                            </button>
-                        )}
-                        {currentUser && (currentUser.role === "admin" || currentUser.role === "moderator") && currentUser.userId !== user.user_id && user.role !== "admin" && (
-                            <button
-                                onClick={handleToggleSuspend}
-                                disabled={actionLoading}
-                                className={`px-4 py-1.5 font-bold rounded-full text-white transition duration-200 cursor-pointer flex items-center gap-1 ${
-                                    user.isSuspended
-                                        ? "bg-green-500 hover:bg-green-600"
-                                        : "bg-red-500 hover:bg-red-600"
-                                }`}
-                            >
-                                {actionLoading ? "En cours..." : user.isSuspended ? "Réactiver le compte" : "Suspendre le compte"}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
+                {/* Wrapper Flexbox : Noms à gauche, Bouton à droite */}
+                <div className="flex justify-between items-start mb-4">
 
-            {/* INFORMATIONS DU PROFIL */}
-            <div className="px-4 pt-2 pb-4">
-                <div className="flex items-center gap-3 mb-1">
-                    <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                        {user.user_diplayname}
-                    </h2>
-                    {user.isSuspended && (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-red-500/10 text-red-500 px-2.5 py-0.5 rounded-full border border-red-500/20">
-                            <FaBan size={10} /> Suspendu
-                        </span>
-                    )}
+                    {/* Noms (à gauche) */}
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                            {user.userDisplayName}
+                        </h1>
+                        <p className="text-gray-500 text-lg">@{user.userName}</p>
+                    </div>
+
+                    {/* Boutons d'action (à droite) */}
+                    <div>
+                        {
+                            isMyProfile ?
+                                <button
+                                    className="flex items-center gap-2 px-5 py-2 font-bold text-gray-800 bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-50 transition duration-200"
+                                >
+                                    <FaPen className="text-sm text-gray-600" />
+                                    Éditer le profil
+                                </button> :
+                                <button
+                                    className={`px-6 py-2 font-bold rounded-full transition duration-200 shadow-sm ${
+                                        user.isFollowing
+                                            ? "bg-white border border-gray-300 text-gray-900 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                            : "bg-gray-900 text-white hover:bg-gray-800"
+                                    }`}
+                                >
+                                    {user.isFollowing ? "Abonné" : "S'abonner"}
+                                </button>
+                        }
+                    </div>
+
                 </div>
-                <p className="text-gray-500 mb-3">
-                    @{user.user_name}
+
+                {/* Biographie */}
+                <p className="text-gray-800 text-base mb-6 whitespace-pre-wrap break-words">
+                    {user.userBio !== null ? user.userBio : "Aucune biographie disponible."}
                 </p>
 
-                {user.user_bio && (
-                    <p className="text-gray-900 text-base mb-3 whitespace-pre-wrap">
-                        {user.user_bio}
-                    </p>
-                )}
-
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <FaCalendarAlt className="text-gray-400" />
-                    <span>A rejoint en {user.joinDate}</span>
+                {/* Statistiques d'abonnements */}
+                <div className="flex flex-wrap items-center gap-8 text-gray-700 mb-6">
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-xl">{user.followingCount}</span>
+                        <span className="text-gray-500">Abonnements</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-xl">{user.followersCount}</span>
+                        <span className="text-gray-500">Abonnés</span>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm">
-                    <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{user.following}</span> <span className="text-gray-500">Abonnements</span>
-                    </Link>
-                    <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{user.followers}</span> <span className="text-gray-500">Abonnés</span>
-                    </Link>
+                {/* Dates */}
+                <div className="flex flex-wrap gap-8 text-sm text-gray-500 pt-6 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <FaCalendarAlt />
+                        <span><strong>Créé le :</strong> {formatDate(user.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <FaCalendarAlt />
+                        <span><strong>Mis à jour le :</strong> {formatDate(user.updatedAt)}</span>
+                    </div>
                 </div>
             </div>
 
-            {/* SYSTÈME D'ONGLETS (Tabs) */}
-            <div className="flex border-b border-gray-200 mt-2">
-                <div className="flex-1 text-center font-bold text-gray-900 hover:bg-gray-100 cursor-pointer transition">
-                    <div className="inline-block py-3 border-b-4 border-blue-500">Posts</div>
-                </div>
-                <div className="flex-1 text-center font-medium text-gray-500 hover:bg-gray-100 cursor-pointer transition py-3">
-                    Réponses
-                </div>
-                <div className="flex-1 text-center font-medium text-gray-500 hover:bg-gray-100 cursor-pointer transition py-3">
-                    J'aime
-                </div>
-            </div>
+            {/* FIL DES TWEETS (En bas) */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
 
-            {/* FIL DES TWEETS DE L'UTILISATEUR */}
-            <div className="bg-white">
-                {tweets.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">Aucun post trouvé.</div>
-                ) : (
-                    tweets.map((tweet) => (
-                        <OneTweet key={tweet._id} tweet={tweet} />
-                    ))
-                )}
+                <div className="p-5 border-b border-gray-200 bg-gray-50">
+                    <h2 className="text-xl font-bold text-gray-900">
+                        Posts de {user.userDisplayName}
+                    </h2>
+                </div>
+
+                <div className="flex flex-col">
+                    {tweets && tweets.length > 0 ? (
+                        tweets.toReversed().map((tweet) => (
+                            <OneTweet key={tweet._id} tweet={tweet} />
+                        ))
+                    ) : (
+                        <div className="p-16 text-center text-gray-500 text-lg">
+                            Aucun post à afficher pour le moment.
+                        </div>
+                    )}
+                </div>
+
             </div>
 
         </div>
