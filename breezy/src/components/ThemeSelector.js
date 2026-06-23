@@ -12,7 +12,7 @@ const themes = [
   { id: "sunset", name: "Sunset", icon: "🌅", colorPreview: "bg-[#1e133a] border border-[#3f297a]" }
 ];
 
-export default function ThemeSelector() {
+export default function ThemeSelector({ position = "down" }) {
   const { theme, setTheme, mounted } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -36,6 +36,10 @@ export default function ThemeSelector() {
   }
 
   const currentThemeObj = themes.find((t) => t.id === theme) || themes[2];
+
+  const dropdownClasses = position === "up"
+    ? "origin-bottom-right absolute right-0 bottom-full mb-2 w-52 rounded-xl shadow-xl border border-[var(--color-border)] bg-[var(--color-card-bg)] ring-1 ring-black/5 divide-y divide-[var(--color-border)] z-50 focus:outline-none transition-all duration-200"
+    : "origin-top-right absolute right-0 mt-2 w-52 rounded-xl shadow-xl border border-[var(--color-border)] bg-[var(--color-card-bg)] ring-1 ring-black/5 divide-y divide-[var(--color-border)] z-50 focus:outline-none transition-all duration-200";
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
@@ -61,7 +65,7 @@ export default function ThemeSelector() {
       </div>
 
       {isOpen && (
-        <div className="origin-top-right absolute right-0 mt-2 w-52 rounded-xl shadow-xl border border-[var(--color-border)] bg-[var(--color-card-bg)] ring-1 ring-black/5 divide-y divide-[var(--color-border)] z-50 focus:outline-none transition-all duration-200">
+        <div className={dropdownClasses}>
           <div className="py-1.5 p-1">
             {themes.map((t) => (
               <button

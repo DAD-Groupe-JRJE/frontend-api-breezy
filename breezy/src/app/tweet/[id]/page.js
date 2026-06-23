@@ -76,56 +76,58 @@ export default function Tweet({ params }) {
     }
 
     return (
-        <div className="w-1/3 mx-auto mt-8 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-            {/* L'AFFICHAGE DU TWEET PRINCIPAL */}
-            <OneTweet tweet={tweet} />
+        <div className="w-full max-w-2xl mx-auto mt-8 px-4 flex flex-col gap-6">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                {/* L'AFFICHAGE DU TWEET PRINCIPAL */}
+                <OneTweet tweet={tweet} />
 
-            {/* LA ZONE DE COMMENTAIRE */}
-            <div className="p-4 bg-gray-50 border-t border-gray-100">
-                <div className="flex gap-4">
-                    <div className="flex-shrink-0 mt-1">
-                        <img
-                            src={currentUser?.userPhoto || (currentUser ? `https://ui-avatars.com/api/?name=${currentUser.userDisplayName || currentUser.userName}&background=random&color=fff` : "https://ui-avatars.com/api/?name=User&background=random&color=fff")}
-                            alt={currentUser ? `Avatar de ${currentUser.userDisplayName || currentUser.userName}` : "Mon avatar"}
-                            className="w-10 h-10 rounded-full object-cover"
-                        />
-                    </div>
-
-                    <form onSubmit={publishComment} className="flex-1">
-                        <label htmlFor="content" className="sr-only">Postez votre réponse</label>
-                        <textarea
-                            id="content"
-                            name="content"
-                            placeholder="Postez votre réponse !"
-                            className="w-full p-3 bg-white text-gray-900 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all"
-                            rows="3"
-                            maxLength="280"
-                            required
-                        ></textarea>
-
-                        <div className="flex justify-end mt-2">
-                            <button
-                                type="submit"
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-5 rounded-full text-sm transition-colors duration-200 shadow-sm"
-                            >
-                                Répondre
-                            </button>
+                {/* LA ZONE DE COMMENTAIRE */}
+                <div className="p-4 bg-secondary/15 border-t border-border">
+                    <div className="flex gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                            <img
+                                src={currentUser?.userPhoto || (currentUser ? `https://ui-avatars.com/api/?name=${currentUser.userDisplayName || currentUser.userName}&background=random&color=fff` : "https://ui-avatars.com/api/?name=User&background=random&color=fff")}
+                                alt={currentUser ? `Avatar de ${currentUser.userDisplayName || currentUser.userName}` : "Mon avatar"}
+                                className="w-10 h-10 rounded-full object-cover"
+                            />
                         </div>
-                    </form>
-                </div>
-            </div>
 
-            <div className="border-t border-gray-100 bg-white">
-                {responses && responses.length > 0 ? (
-                    // On utilise .toReversed() pour avoir les réponses les plus récentes en haut
-                    responses.toReversed().map((response) => (
-                        <OneTweet key={response._id} tweet={response} />
-                    ))
-                ) : (
-                    <div className="p-8 text-center text-gray-500 text-sm">
-                        Aucune réponse pour le moment. Soyez le premier à répondre !
+                        <form onSubmit={publishComment} className="flex-1">
+                            <label htmlFor="content" className="sr-only">Postez votre réponse</label>
+                            <textarea
+                                id="content"
+                                name="content"
+                                placeholder="Postez votre réponse !"
+                                className="w-full p-3 bg-card text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none transition-all duration-200 text-sm"
+                                rows="3"
+                                maxLength="280"
+                                required
+                            ></textarea>
+
+                            <div className="flex justify-end mt-2">
+                                <button
+                                    type="submit"
+                                    className="bg-primary hover:opacity-90 text-white font-bold py-2 px-5 rounded-full text-sm transition-all duration-200 shadow-sm cursor-pointer"
+                                >
+                                    Répondre
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                )}
+                </div>
+
+                <div className="border-t border-border bg-card">
+                    {responses && responses.length > 0 ? (
+                        // On utilise .toReversed() pour avoir les réponses les plus récentes en haut
+                        responses.toReversed().map((response) => (
+                            <OneTweet key={response._id} tweet={response} />
+                        ))
+                    ) : (
+                        <div className="p-8 text-center opacity-60 text-sm">
+                            Aucune réponse pour le moment. Soyez le premier à répondre !
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
