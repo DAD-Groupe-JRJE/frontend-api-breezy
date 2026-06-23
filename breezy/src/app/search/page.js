@@ -19,7 +19,7 @@ export default function SearchPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher des tweets, des utilisateurs..."
+            placeholder="Rechercher des posts, des utilisateurs..."
             className="w-full pl-10 pr-4 py-3 bg-secondary/40 text-foreground border border-border rounded-full focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200"
           />
         </div>

@@ -3,16 +3,22 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaHeart, FaRegHeart, FaComment, FaRegComment } from "react-icons/fa";
-import { getTweetsResponse, likeTweet, unlikeTweet, getUserById, getStoredUserId } from "@/utils/api";
+import { getTweetsResponse, likeTweet, unlikeTweet, getUserById, getStoredUserId, updateTweet } from "@/utils/api";
 import { formatTimeAgo } from "@/utils/formatDate";
 
 export default function OneTweet({ tweet }) {
     const currentUserId = getStoredUserId();
+    const isOwnTweet = tweet.idUser === currentUserId;
 
     const [isLiked, setIsLiked] = useState(tweet.likes?.includes(currentUserId) || false);
     const [likesCount, setLikesCount] = useState(tweet.likes?.length || 0);
     const [isCommented, setIsCommented] = useState(false);
     const [weight, setWeight] = useState(tweet.weight);
+    
+    // States for inline editing
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentContent, setCurrentContent] = useState(tweet.content);
+    const [editContent, setEditContent] = useState(tweet.content);
 
     useEffect(() => {
         if (tweet.weight !== undefined) {
@@ -20,6 +26,20 @@ export default function OneTweet({ tweet }) {
             setWeight(tweet.weight + diff);
         }
     }, [likesCount, tweet.weight, tweet.likes]);
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!editContent || editContent.trim() === "") return;
+
+        try {
+            await updateTweet(tweet._id, editContent);
+            setCurrentContent(editContent);
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Erreur lors de la modification :", error);
+            alert(error.message || "Impossible de modifier le tweet.");
+        }
+    };
     
     const [user, setUser] = useState({
         name: "Chargement...",
@@ -116,22 +136,64 @@ export default function OneTweet({ tweet }) {
                             </span>
                         </Link>
 
-                        {/* Partie droite : Date (sans le point) */}
-                        <Link
-                            href={`/tweet/${tweet._id}`}
-                            className="opacity-50 text-sm hover:underline flex-shrink-0 ml-2"
-                        >
-                            {formatTimeAgo(tweet.createdAt)}
-                        </Link>
+                        {/* Partie droite : Date et Bouton modifier */}
+                        <div className="flex items-center gap-3 ml-2 flex-shrink-0">
+                            {isOwnTweet && !isEditing && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setIsEditing(true);
+                                    }}
+                                    className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                                >
+                                    Modifier
+                                </button>
+                            )}
+                            <Link
+                                href={`/tweet/${tweet._id}`}
+                                className="opacity-50 text-sm hover:underline"
+                            >
+                                {formatTimeAgo(tweet.createdAt)}
+                            </Link>
+                        </div>
 
                     </div>
 
-                    {/* Texte du tweet */}
-                    <Link href={`/tweet/${tweet._id}`} className="block mt-1">
-                        <p className="text-foreground text-base whitespace-pre-wrap break-words">
-                            {tweet.content}
-                        </p>
-                    </Link>
+                    {/* Texte du post ou Formulaire d'édition */}
+                    {isEditing ? (
+                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                            <textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                className="w-full p-3 bg-secondary/40 text-foreground border border-border rounded-lg outline-none resize-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-all"
+                                rows="3"
+                                maxLength="280"
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                                <button
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        setEditContent(currentContent);
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-bold text-foreground bg-secondary/60 hover:bg-secondary border border-border rounded-full cursor-pointer transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    className="px-4 py-1.5 text-xs font-bold text-white bg-primary hover:opacity-90 rounded-full cursor-pointer transition-all shadow-sm"
+                                >
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Link href={`/tweet/${tweet._id}`} className="block mt-1 w-full min-w-0">
+                            <p className="text-foreground text-base whitespace-pre-wrap break-words [word-break:break-word] [overflow-wrap:anywhere]">
+                                {currentContent}
+                            </p>
+                        </Link>
+                    )}
 
                     {/* Boutons d'interaction */}
                     <div className="flex items-center gap-12 mt-3 opacity-80">

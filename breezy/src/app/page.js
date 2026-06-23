@@ -32,7 +32,7 @@ export default function Home() {
 
     try {
       await createNewTweet(content);
-      setNotification({ type: "success", message: "Tweet créé avec succès !" });
+      setNotification({ type: "success", message: "Post créé avec succès !" });
       formRef.current?.reset();
       
       // Force reload the list
@@ -56,7 +56,7 @@ export default function Home() {
         </h1>
       </div>
 
-      {/* Write a Tweet Form (only for logged-in users) */}
+      {/* Write a Post Form (only for logged-in users) */}
       {isLoggedIn && (
         <div className="w-full max-w-xl mx-auto mb-8 relative">
           {notification && (
@@ -81,7 +81,7 @@ export default function Home() {
             className="card bg-card border border-border p-5 rounded-xl shadow-sm transition-all"
           >
             <div className="mb-4">
-              <label htmlFor="content" className="sr-only">Contenu du tweet</label>
+              <label htmlFor="content" className="sr-only">Contenu du post</label>
               <textarea
                 id="content"
                 name="content"
@@ -99,7 +99,7 @@ export default function Home() {
                 type="submit"
                 className="bg-primary hover:opacity-90 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 shadow-md cursor-pointer text-sm"
               >
-                Tweeter
+                Poster
               </button>
             </div>
           </form>

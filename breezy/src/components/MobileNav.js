@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaUser, FaSearch, FaFeatherAlt, FaEnvelope } from "react-icons/fa";
+import { FaHome, FaUser, FaSearch, FaFeatherAlt, FaEnvelope, FaShieldAlt } from "react-icons/fa";
 
 export default function MobileNav() {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
   const checkAuth = () => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("breezy_jwt");
-      setIsLoggedIn(!!token);
+      const userStr = localStorage.getItem("breezy_user");
+      if (userStr) {
+        try {
+          setUser(JSON.parse(userStr));
+        } catch (e) {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
     }
   };
 
@@ -29,12 +37,18 @@ export default function MobileNav() {
     { name: "Rechercher", href: "/search", icon: <FaSearch className="text-xl" /> },
   ];
 
-  if (isLoggedIn) {
+  if (user) {
     navItems.push(
       { name: "Poster", href: "/tweet/create", icon: <FaFeatherAlt className="text-xl" /> },
       { name: "Message", href: "/messages", icon: <FaEnvelope className="text-xl" /> },
       { name: "Profil", href: "/user/me", icon: <FaUser className="text-xl" /> }
     );
+
+    if (user.role === "admin" || user.role === "moderator") {
+      navItems.push(
+        { name: "Modération", href: "/moderation", icon: <FaShieldAlt className="text-xl" /> }
+      );
+    }
   }
 
   return (

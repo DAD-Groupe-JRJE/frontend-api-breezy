@@ -76,7 +76,7 @@ export default function Tweet({ params }) {
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto mt-8 px-4 flex flex-col gap-6">
+        <div className="w-full max-w-3xl mx-auto mt-8 px-4 flex flex-col gap-6">
             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 {/* L'AFFICHAGE DU TWEET PRINCIPAL */}
                 <OneTweet tweet={tweet} />

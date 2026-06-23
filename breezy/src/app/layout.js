@@ -42,7 +42,7 @@ export default function RootLayout({ children }) {
                 {/* Mobile top header */}
                 <MobileHeader />
                 
-                <div className="flex-1 w-full max-w-2xl mx-auto border-l border-r border-border">
+                <div className="flex-1 w-full max-w-3xl mx-auto border-l border-r border-border">
                   {children}
                 </div>
               </div>

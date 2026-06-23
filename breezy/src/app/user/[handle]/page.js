@@ -2,12 +2,14 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import {FaArrowLeft, FaCalendarAlt, FaPen} from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import {FaArrowLeft, FaCalendarAlt, FaPen, FaSignOutAlt} from "react-icons/fa";
 import OneTweet from "@/components/OneTweet";
 import {getUserById, getTweetsByUser, getConnectedUserInfo, followUser, unfollowUser} from "@/utils/api";
 
 export default function UserPage({ params }) {
     const { handle } = use(params);
+    const router = useRouter();
 
     const [user, setUser] = useState(null);
     const [userConnected, setUserConnected] = useState(null);
@@ -17,6 +19,14 @@ export default function UserPage({ params }) {
     const [isMyProfile, setIsMyProfile] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [tweetsError, setTweetsError] = useState("");
+
+    const handleLogout = () => {
+        localStorage.removeItem("breezy_jwt");
+        localStorage.removeItem("breezy_user");
+        window.dispatchEvent(new Event("auth-change"));
+        router.push("/login");
+        router.refresh();
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -56,7 +66,7 @@ export default function UserPage({ params }) {
                         const userTweets = await getTweetsByUser(user.userId);
                         setTweets(userTweets || []);
                     } catch (err) {
-                        console.error("Erreur tweets:", err);
+                        console.error("Erreur posts:", err);
                         setTweetsError(err.message || "Accès refusé.");
                     }
                 }
@@ -136,7 +146,7 @@ export default function UserPage({ params }) {
 
 
     return (
-        <div className="w-full max-w-2xl mx-auto py-8 px-4 min-h-screen flex flex-col gap-6">
+        <div className="w-full max-w-3xl mx-auto py-8 px-4 min-h-screen flex flex-col gap-6">
 
             {/* BOUTON RETOUR */}
             <div>
@@ -163,12 +173,21 @@ export default function UserPage({ params }) {
                     <div>
                         {
                             isMyProfile ?
-                                <button
-                                    className="flex items-center gap-2 px-5 py-2.5 font-bold text-foreground bg-card border border-border rounded-full shadow-sm hover:bg-secondary/40 transition duration-200 cursor-pointer text-sm"
-                                >
-                                    <FaPen className="text-sm opacity-75" />
-                                    Éditer le profil
-                                </button> :
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <button
+                                        className="flex items-center gap-2 px-5 py-2.5 font-bold text-foreground bg-card border border-border rounded-full shadow-sm hover:bg-secondary/40 transition duration-200 cursor-pointer text-sm"
+                                    >
+                                        <FaPen className="text-sm opacity-75" />
+                                        Éditer le profil
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex md:hidden items-center justify-center gap-2 px-5 py-2.5 font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-full transition-all duration-200 cursor-pointer text-sm"
+                                    >
+                                        <FaSignOutAlt />
+                                        Déconnexion
+                                    </button>
+                                </div> :
                                 <button
                                     onClick={handleFollowToggle}
                                     className={`px-6 py-2.5 font-bold rounded-full transition duration-200 shadow-sm cursor-pointer text-sm ${
@@ -214,7 +233,7 @@ export default function UserPage({ params }) {
                 </div>
             </div>
 
-            {/* FIL DES TWEETS (En bas) */}
+            {/* FIL DES POSTS (En bas) */}
             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
 
                 <div className="p-5 border-b border-border bg-secondary/15">

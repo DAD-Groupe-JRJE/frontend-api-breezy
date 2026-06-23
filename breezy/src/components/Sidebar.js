@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { FaHome, FaUser, FaSearch, FaFeatherAlt, FaEnvelope, FaSignOutAlt, FaSignInAlt, FaUserPlus } from "react-icons/fa";
+import { FaHome, FaUser, FaSearch, FaFeatherAlt, FaEnvelope, FaSignOutAlt, FaSignInAlt, FaUserPlus, FaShieldAlt } from "react-icons/fa";
 import ThemeSelector from "./ThemeSelector";
 
 export default function Sidebar() {
@@ -54,6 +54,12 @@ export default function Sidebar() {
       { name: "Poster", href: "/tweet/create", icon: <FaFeatherAlt className="text-xl" /> },
       { name: "Profil", href: "/user/me", icon: <FaUser className="text-xl" /> }
     );
+
+    if (user.role === "admin" || user.role === "moderator") {
+      navItems.push(
+        { name: "Modération", href: "/moderation", icon: <FaShieldAlt className="text-xl" /> }
+      );
+    }
   }
 
   return (
