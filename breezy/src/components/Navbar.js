@@ -61,11 +61,7 @@ export default function Navbar() {
                   </span>
                 </Link>
               )}
-              <Link href="/tweet/create">
-                <span className="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-full transition-all duration-200 shadow-md hover:opacity-90 cursor-pointer">
-                  Écrire un tweet
-                </span>
-              </Link>
+
               <span className="text-sm opacity-80 hidden md:inline">
                 Bonjour, <Link href="/user/me" className="text-primary hover:underline cursor-pointer font-bold">@{user.userName}</Link>
               </span>

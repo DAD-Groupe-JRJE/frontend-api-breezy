@@ -12,6 +12,14 @@ export default function OneTweet({ tweet }) {
     const [isLiked, setIsLiked] = useState(tweet.likes?.includes(currentUserId) || false);
     const [likesCount, setLikesCount] = useState(tweet.likes?.length || 0);
     const [isCommented, setIsCommented] = useState(false);
+    const [weight, setWeight] = useState(tweet.weight);
+
+    useEffect(() => {
+        if (tweet.weight !== undefined) {
+            const diff = likesCount - (tweet.likes?.length || 0);
+            setWeight(tweet.weight + diff);
+        }
+    }, [likesCount, tweet.weight, tweet.likes]);
     
     const [user, setUser] = useState({
         name: "Chargement...",
@@ -149,6 +157,12 @@ export default function OneTweet({ tweet }) {
                             </div>
                             <span>{likesCount}</span>
                         </button>
+
+                        {weight !== undefined && (
+                            <span className="text-xs opacity-60 bg-secondary px-2 py-0.5 rounded-full font-semibold">
+                                Poids: {weight}
+                            </span>
+                        )}
                     </div>
 
                 </div>
