@@ -1,129 +1,244 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
-import OneTweet from "@/components/OneTweet"; // Ajuste le chemin
+import {FaArrowLeft, FaCalendarAlt, FaPen} from "react-icons/fa";
+import OneTweet from "@/components/OneTweet";
+import {getUserById, getTweetsByUser, getConnectedUserInfo, followUser, unfollowUser} from "@/utils/api";
 
-export default async function UserPage({ params }) {
-    // 1. Récupération du handle (@) depuis l'URL
-    const { handle } = await params;
+export default function UserPage({ params }) {
+    const { handle } = use(params);
 
-    // 2. Fausse donnée utilisateur (Mock)
-    // Plus tard : const user = await getUserByHandle(handle);
-    const mockUser = {
-        user_id: "user_999xyz",
-        user_email: "test@example.com", // Ne s'affiche pas publiquement
-        user_name: handle, // Le handle sans le @
-        user_diplayname: handle.charAt(0).toUpperCase() + handle.slice(1), // Met une majuscule pour faire joli
-        user_photo: `https://ui-avatars.com/api/?name=${handle}&background=random&color=fff&size=150`,
-        user_bio: "Développeur passionné 💻 | En train de coder un super clone avec Next.js et Node.js !",
-        user_password: "hash", // Ne s'affiche jamais
+    const [user, setUser] = useState(null);
+    const [userConnected, setUserConnected] = useState(null);
 
-        // Des petites stats bonus qu'on retrouve souvent
-        joinDate: "Juin 2026",
-        followers: 124,
-        following: 42
+    const [tweets, setTweets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isMyProfile, setIsMyProfile] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [tweetsError, setTweetsError] = useState("");
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setErrorMsg("");
+                setTweetsError("");
+                let tempUserConnected = null;
+
+                const userStr = localStorage.getItem("breezy_user");
+                if (userStr) {
+                    try {
+                        tempUserConnected = JSON.parse(userStr);
+                        setUserConnected(tempUserConnected);
+                    } catch (e) {
+                        setUserConnected(null);
+                    }
+                } else {
+                    setUserConnected(null);
+                }
+
+                setLoading(true);
+                let user = await getUserById(handle);
+                if (!user) {
+                    setErrorMsg("Cet utilisateur est introuvable.");
+                    return;
+                }
+                setUser(user.user);
+
+                user = user.user
+
+                if (user && tempUserConnected && user.userId === tempUserConnected.userId) {
+                    setIsMyProfile(true);
+                }
+
+                if (user && user.userId) {
+                    try {
+                        const userTweets = await getTweetsByUser(user.userId);
+                        setTweets(userTweets || []);
+                    } catch (err) {
+                        console.error("Erreur tweets:", err);
+                        setTweetsError(err.message || "Accès refusé.");
+                    }
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données :", error);
+                setErrorMsg(error.message || "Erreur de connexion.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [handle]);
+
+    const handleFollowToggle = async () => {
+        if (!userConnected) {
+            setErrorMsg("Vous devez être connecté pour suivre un utilisateur.");
+            return;
+        }
+        try {
+            setErrorMsg("");
+            if (user.isFollowing) {
+                const updatedProfile = await unfollowUser(user.userId);
+                if (updatedProfile && updatedProfile.user) {
+                    setUser(updatedProfile.user);
+                }
+            } else {
+                const updatedProfile = await followUser(user.userId);
+                if (updatedProfile && updatedProfile.user) {
+                    setUser(updatedProfile.user);
+                }
+            }
+        } catch (error) {
+            console.error("Erreur lors du changement d'abonnement :", error);
+            setErrorMsg(error.message || "Erreur lors du changement d'abonnement.");
+        }
     };
 
-    // 3. Faux tweets pour remplir son profil
-    // Plus tard : const userTweets = await getTweetsByUser(mockUser.user_id);
-    const mockTweets = [
-        {
-            _id: "t1",
-            content: "Salut tout le monde ! C'est mon premier tweet sur cette nouvelle appli. 🚀",
-            likes: ["123", "456"],
-            createdAt: new Date().toISOString()
-        },
-        {
-            _id: "t2",
-            content: "Le combo Next.js + Tailwind + Express + MongoDB est vraiment incroyable à utiliser au quotidien.",
-            likes: [],
-            createdAt: new Date(Date.now() - 86400000).toISOString() // Hier
-        }
-    ];
+    // Formatage simple des dates
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleString("fr-FR", {
+            day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+    };
+
+    if (loading) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center">
+                <p className="text-gray-500">Chargement du profil...</p>
+            </div>
+        );
+    }
+
+    if (errorMsg) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center flex-col p-4">
+                <div className="p-4 text-center text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg max-w-md mx-auto mb-4 text-sm font-medium">
+                    {errorMsg}
+                </div>
+                <Link href="/" className="px-5 py-2.5 bg-primary text-white font-bold rounded-full text-sm hover:opacity-90 transition">
+                    Retour à l'accueil
+                </Link>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="max-w-2xl mx-auto min-h-screen flex items-center justify-center flex-col">
+                <p className="text-gray-500 mb-4">Cet utilisateur est introuvable.</p>
+                <Link href="/" className="px-4 py-2 bg-blue-500 text-white rounded-full">
+                    Retour à l'accueil
+                </Link>
+            </div>
+        );
+    }
+
 
     return (
-        <div className="max-w-2xl mx-auto bg-white border-x border-gray-200 min-h-screen">
+        <div className="w-[80%] mx-auto py-8 min-h-screen flex flex-col gap-6">
 
-            {/* EN-TÊTE FIXE (Header) */}
-            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-2 flex items-center gap-6">
-                <Link
-                    href="/"
-                    className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
-                >
-                    <FaArrowLeft className="text-gray-800" />
+            {/* BOUTON RETOUR */}
+            <div>
+                <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition text-gray-800 font-medium w-fit shadow-sm">
+                    <FaArrowLeft />
+                    Retour
                 </Link>
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                        {mockUser.user_diplayname}
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                        {mockTweets.length} posts
-                    </p>
-                </div>
             </div>
 
-            {/* BANNIÈRE ET AVATAR */}
-            <div className="relative">
-                {/* Bannière (Couleur unie temporaire) */}
-                <div className="h-48 bg-slate-200 w-full object-cover"></div>
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
 
-                {/* Avatar flottant et Bouton Éditer */}
-                <div className="px-4 flex justify-between items-start relative">
-                    <div className="-mt-16 rounded-full p-1 bg-white">
-                        <img
-                            src={mockUser.user_photo}
-                            alt={`Photo de profil de ${mockUser.user_diplayname}`}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-white"
-                        />
+                {/* Wrapper Flexbox : Noms à gauche, Bouton à droite */}
+                <div className="flex justify-between items-start mb-4">
+
+                    {/* Noms (à gauche) */}
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                            {user.userDisplayName}
+                        </h1>
+                        <p className="text-gray-500 text-lg">@{user.userName}</p>
                     </div>
-                    <div className="pt-3">
-                        <button className="px-4 py-1.5 font-bold border border-gray-300 rounded-full hover:bg-gray-100 transition duration-200 text-gray-900">
-                            Éditer le profil
-                        </button>
+
+                    {/* Boutons d'action (à droite) */}
+                    <div>
+                        {
+                            isMyProfile ?
+                                <button
+                                    className="flex items-center gap-2 px-5 py-2 font-bold text-gray-800 bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-50 transition duration-200"
+                                >
+                                    <FaPen className="text-sm text-gray-600" />
+                                    Éditer le profil
+                                </button> :
+                                <button
+                                    onClick={handleFollowToggle}
+                                    className={`px-6 py-2 font-bold rounded-full transition duration-200 shadow-sm ${
+                                        user.isFollowing
+                                            ? "bg-white border border-gray-300 text-gray-900 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                            : "bg-gray-900 text-white hover:bg-gray-800"
+                                    }`}
+                                >
+                                    {user.isFollowing ? "Se désabonner" : "S'abonner"}
+                                </button>
+                        }
                     </div>
+
                 </div>
-            </div>
 
-            {/* INFORMATIONS DU PROFIL */}
-            <div className="px-4 pt-2 pb-4">
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    {mockUser.user_diplayname}
-                </h2>
-                <p className="text-gray-500 mb-3">
-                    @{mockUser.user_name}
+                {/* Biographie */}
+                <p className="text-gray-800 text-base mb-6 whitespace-pre-wrap break-words">
+                    {user.userBio !== null ? user.userBio : "Aucune biographie disponible."}
                 </p>
 
-                <p className="text-gray-900 text-base mb-3 whitespace-pre-wrap">
-                    {mockUser.user_bio}
-                </p>
+                {/* Statistiques d'abonnements */}
+                <div className="flex flex-wrap items-center gap-8 text-gray-700 mb-6">
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-xl">{user.followingCount}</span>
+                        <span className="text-gray-500">Abonnements</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-xl">{user.followersCount}</span>
+                        <span className="text-gray-500">Abonnés</span>
+                    </div>
+                </div>
 
-                <div className="flex items-center gap-4 text-sm">
-                    <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{mockUser.following}</span> <span className="text-gray-500">Abonnements</span>
-                    </Link>
-                    <Link href="#" className="hover:underline">
-                        <span className="font-bold text-gray-900">{mockUser.followers}</span> <span className="text-gray-500">Abonnés</span>
-                    </Link>
+                {/* Dates */}
+                <div className="flex flex-wrap gap-8 text-sm text-gray-500 pt-6 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <FaCalendarAlt />
+                        <span><strong>Créé le :</strong> {formatDate(user.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <FaCalendarAlt />
+                        <span><strong>Mis à jour le :</strong> {formatDate(user.updatedAt)}</span>
+                    </div>
                 </div>
             </div>
 
-            {/* SYSTÈME D'ONGLETS (Tabs) */}
-            <div className="flex border-b border-gray-200 mt-2">
-                <div className="flex-1 text-center font-bold text-gray-900 hover:bg-gray-100 cursor-pointer transition">
-                    <div className="inline-block py-3 border-b-4 border-blue-500">Posts</div>
-                </div>
-                <div className="flex-1 text-center font-medium text-gray-500 hover:bg-gray-100 cursor-pointer transition py-3">
-                    Réponses
-                </div>
-                <div className="flex-1 text-center font-medium text-gray-500 hover:bg-gray-100 cursor-pointer transition py-3">
-                    J'aime
-                </div>
-            </div>
+            {/* FIL DES TWEETS (En bas) */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
 
-            {/* FIL DES TWEETS DE L'UTILISATEUR */}
-            <div className="bg-white">
-                {mockTweets.map((tweet) => (
-                    <OneTweet key={tweet._id} tweet={tweet} />
-                ))}
+                <div className="p-5 border-b border-gray-200 bg-gray-50">
+                    <h2 className="text-xl font-bold text-gray-900">
+                        Posts de {user.userDisplayName}
+                    </h2>
+                </div>
+
+                <div className="flex flex-col">
+                    {tweetsError ? (
+                        <div className="p-16 text-center text-red-500 bg-red-500/5 font-medium border-t border-gray-100">
+                            {tweetsError}
+                        </div>
+                    ) : tweets && tweets.length > 0 ? (
+                        tweets.toReversed().map((tweet) => (
+                            <OneTweet key={tweet._id} tweet={tweet} />
+                        ))
+                    ) : (
+                        <div className="p-16 text-center text-gray-500 text-lg">
+                            Aucun post à afficher pour le moment.
+                        </div>
+                    )}
+                </div>
+
             </div>
 
         </div>
