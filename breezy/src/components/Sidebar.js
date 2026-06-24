@@ -50,7 +50,7 @@ export default function Sidebar() {
 
   if (user) {
     navItems.push(
-      { name: "Message", href: "/messages", icon: <FaEnvelope className="text-xl" /> },
+      // { name: "Message", href: "/messages", icon: <FaEnvelope className="text-xl" /> },
       { name: "Poster", href: "/tweet/create", icon: <FaFeatherAlt className="text-xl" /> },
       { name: "Profil", href: "/user/me", icon: <FaUser className="text-xl" /> }
     );

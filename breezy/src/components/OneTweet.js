@@ -6,6 +6,14 @@ import { FaHeart, FaRegHeart, FaComment, FaRegComment } from "react-icons/fa";
 import { getTweetsResponse, likeTweet, unlikeTweet, getUserById, getStoredUserId, updateTweet } from "@/utils/api";
 import { formatTimeAgo } from "@/utils/formatDate";
 
+const getMediaUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+        return url;
+    }
+    return `http://localhost:8080${url}`;
+};
+
 export default function OneTweet({ tweet }) {
     const currentUserId = getStoredUserId();
     const isOwnTweet = tweet.idUser === currentUserId;
@@ -37,7 +45,7 @@ export default function OneTweet({ tweet }) {
             setIsEditing(false);
         } catch (error) {
             console.error("Erreur lors de la modification :", error);
-            alert(error.message || "Impossible de modifier le tweet.");
+            alert(error.message || "Impossible de modifier le post.");
         }
     };
     
@@ -192,6 +200,24 @@ export default function OneTweet({ tweet }) {
                             <p className="text-foreground text-base whitespace-pre-wrap break-words [word-break:break-word] [overflow-wrap:anywhere]">
                                 {currentContent}
                             </p>
+                            {tweet.mediaUrl && (
+                                <div className="mt-3 rounded-xl overflow-hidden border border-border bg-black/5 max-h-96 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                                    {tweet.mediaType === "video" ? (
+                                        <video
+                                            src={getMediaUrl(tweet.mediaUrl)}
+                                            controls
+                                            className="max-h-96 w-full object-contain"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={getMediaUrl(tweet.mediaUrl)}
+                                            alt="Contenu du post"
+                                            className="max-h-96 w-full object-contain"
+                                            loading="lazy"
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </Link>
                     )}
 
@@ -220,11 +246,6 @@ export default function OneTweet({ tweet }) {
                             <span>{likesCount}</span>
                         </button>
 
-                        {weight !== undefined && (
-                            <span className="text-xs opacity-60 bg-secondary px-2 py-0.5 rounded-full font-semibold">
-                                Poids: {weight}
-                            </span>
-                        )}
                     </div>
 
                 </div>

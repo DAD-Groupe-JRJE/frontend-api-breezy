@@ -305,50 +305,52 @@ export default function ModerationPage() {
                     {filteredUsers.map((u) => {
                         const avatarUrl = u.userPhoto || `https://ui-avatars.com/api/?name=${u.userDisplayName || u.userName}&background=random&color=fff&size=128`;
                         return (
-                            <div key={u.userId} className={`card flex p-5 border gap-4 items-center transition-all ${
+                            <div key={u.userId} className={`card flex flex-col sm:flex-row p-5 border gap-4 sm:items-center transition-all ${
                                 u.isSuspended ? "border-red-500/30 bg-red-500/5" : "border-border"
                             }`}>
-                                <img
-                                    src={avatarUrl}
-                                    alt={`Avatar de ${u.userDisplayName}`}
-                                    className="w-16 h-16 rounded-full object-cover border border-border"
-                                />
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <img
+                                        src={avatarUrl}
+                                        alt={`Avatar de ${u.userDisplayName}`}
+                                        className="w-16 h-16 rounded-full object-cover border border-border shrink-0"
+                                    />
 
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                        <h3 className="font-bold truncate text-lg">{u.userDisplayName}</h3>
-                                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                                            u.role === "admin"
-                                                ? "bg-red-500 text-white"
-                                                : u.role === "moderator"
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-gray-200 text-gray-800"
-                                        }`}>
-                                            {u.role}
-                                        </span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            <h3 className="font-bold truncate text-lg">{u.userDisplayName}</h3>
+                                            <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                                                u.role === "admin"
+                                                    ? "bg-red-500 text-white"
+                                                    : u.role === "moderator"
+                                                    ? "bg-blue-500 text-white"
+                                                    : "bg-gray-200 text-gray-800"
+                                            }`}>
+                                                {u.role}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm opacity-60 truncate">@{u.userName}</p>
+                                        <p className="text-xs opacity-50 truncate mb-2">{u.userEmail}</p>
+
+                                        {u.isSuspended ? (
+                                            <span className="inline-flex items-center gap-1 text-xs font-semibold bg-red-500/10 text-red-500 px-2.5 py-0.5 rounded-full border border-red-500/20">
+                                                <FaBan size={10} /> Suspendu
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-500/10 text-green-500 px-2.5 py-0.5 rounded-full border border-green-500/20">
+                                                <FaUserCheck size={10} /> Actif
+                                            </span>
+                                        )}
                                     </div>
-                                    <p className="text-sm opacity-60 truncate">@{u.userName}</p>
-                                    <p className="text-xs opacity-50 truncate mb-2">{u.userEmail}</p>
-
-                                    {u.isSuspended ? (
-                                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-red-500/10 text-red-500 px-2.5 py-0.5 rounded-full border border-red-500/20">
-                                            <FaBan size={10} /> Suspendu
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-500/10 text-green-500 px-2.5 py-0.5 rounded-full border border-green-500/20">
-                                            <FaUserCheck size={10} /> Actif
-                                        </span>
-                                    )}
                                 </div>
 
                                 {/* Actions */}
-                                <div>
+                                <div className="flex justify-end sm:block">
                                     {u.role !== "admin" ? (
                                         u.isSuspended ? (
                                             <button
                                                 onClick={() => handleUnsuspend(u.userId)}
                                                 disabled={actionLoadingId === u.userId}
-                                                className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-xs font-bold rounded-full transition-colors cursor-pointer shadow-sm"
+                                                className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-xs font-bold rounded-full transition-colors cursor-pointer shadow-sm w-full sm:w-auto"
                                             >
                                                 {actionLoadingId === u.userId ? "En cours..." : "Réactiver"}
                                             </button>
@@ -356,13 +358,13 @@ export default function ModerationPage() {
                                             <button
                                                 onClick={() => handleSuspend(u.userId)}
                                                 disabled={actionLoadingId === u.userId}
-                                                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-bold rounded-full transition-colors cursor-pointer shadow-sm"
+                                                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-bold rounded-full transition-colors cursor-pointer shadow-sm w-full sm:w-auto"
                                             >
                                                 {actionLoadingId === u.userId ? "En cours..." : "Suspendre"}
                                             </button>
                                         )
                                     ) : (
-                                        <span className="text-xs opacity-40 font-italic italic">Protégé</span>
+                                        <span className="text-xs opacity-40 font-italic italic mt-2 block sm:inline">Protégé</span>
                                     )}
                                 </div>
                             </div>
