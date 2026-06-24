@@ -2,12 +2,14 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import {FaArrowLeft, FaCalendarAlt, FaPen} from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import {FaArrowLeft, FaCalendarAlt, FaPen, FaSignOutAlt} from "react-icons/fa";
 import OneTweet from "@/components/OneTweet";
 import {getUserById, getTweetsByUser, getConnectedUserInfo, followUser, unfollowUser} from "@/utils/api";
 
 export default function UserPage({ params }) {
     const { handle } = use(params);
+    const router = useRouter();
 
     const [user, setUser] = useState(null);
     const [userConnected, setUserConnected] = useState(null);
@@ -17,6 +19,14 @@ export default function UserPage({ params }) {
     const [isMyProfile, setIsMyProfile] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [tweetsError, setTweetsError] = useState("");
+
+    const handleLogout = () => {
+        localStorage.removeItem("breezy_jwt");
+        localStorage.removeItem("breezy_user");
+        window.dispatchEvent(new Event("auth-change"));
+        router.push("/login");
+        router.refresh();
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -56,7 +66,7 @@ export default function UserPage({ params }) {
                         const userTweets = await getTweetsByUser(user.userId);
                         setTweets(userTweets || []);
                     } catch (err) {
-                        console.error("Erreur tweets:", err);
+                        console.error("Erreur posts:", err);
                         setTweetsError(err.message || "Accès refusé.");
                     }
                 }
@@ -136,45 +146,54 @@ export default function UserPage({ params }) {
 
 
     return (
-        <div className="w-[80%] mx-auto py-8 min-h-screen flex flex-col gap-6">
+        <div className="w-full max-w-3xl mx-auto py-8 px-4 min-h-screen flex flex-col gap-6">
 
             {/* BOUTON RETOUR */}
             <div>
-                <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition text-gray-800 font-medium w-fit shadow-sm">
+                <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full hover:bg-secondary/40 transition text-foreground font-medium w-fit shadow-sm text-sm cursor-pointer">
                     <FaArrowLeft />
                     Retour
                 </Link>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+            <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
 
                 {/* Wrapper Flexbox : Noms à gauche, Bouton à droite */}
                 <div className="flex justify-between items-start mb-4">
 
                     {/* Noms (à gauche) */}
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                        <h1 className="text-3xl font-bold text-foreground leading-tight">
                             {user.userDisplayName}
                         </h1>
-                        <p className="text-gray-500 text-lg">@{user.userName}</p>
+                        <p className="opacity-60 text-lg">@{user.userName}</p>
                     </div>
 
                     {/* Boutons d'action (à droite) */}
                     <div>
                         {
                             isMyProfile ?
-                                <button
-                                    className="flex items-center gap-2 px-5 py-2 font-bold text-gray-800 bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-50 transition duration-200"
-                                >
-                                    <FaPen className="text-sm text-gray-600" />
-                                    Éditer le profil
-                                </button> :
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <button
+                                        className="flex items-center gap-2 px-5 py-2.5 font-bold text-foreground bg-card border border-border rounded-full shadow-sm hover:bg-secondary/40 transition duration-200 cursor-pointer text-sm"
+                                    >
+                                        <FaPen className="text-sm opacity-75" />
+                                        Éditer le profil
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex md:hidden items-center justify-center gap-2 px-5 py-2.5 font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-full transition-all duration-200 cursor-pointer text-sm"
+                                    >
+                                        <FaSignOutAlt />
+                                        Déconnexion
+                                    </button>
+                                </div> :
                                 <button
                                     onClick={handleFollowToggle}
-                                    className={`px-6 py-2 font-bold rounded-full transition duration-200 shadow-sm ${
+                                    className={`px-6 py-2.5 font-bold rounded-full transition duration-200 shadow-sm cursor-pointer text-sm ${
                                         user.isFollowing
-                                            ? "bg-white border border-gray-300 text-gray-900 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                                            : "bg-gray-900 text-white hover:bg-gray-800"
+                                            ? "bg-card border border-border text-foreground hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20"
+                                            : "bg-primary text-white hover:opacity-90"
                                     }`}
                                 >
                                     {user.isFollowing ? "Se désabonner" : "S'abonner"}
@@ -185,24 +204,24 @@ export default function UserPage({ params }) {
                 </div>
 
                 {/* Biographie */}
-                <p className="text-gray-800 text-base mb-6 whitespace-pre-wrap break-words">
+                <p className="text-foreground text-base mb-6 whitespace-pre-wrap break-words opacity-90">
                     {user.userBio !== null ? user.userBio : "Aucune biographie disponible."}
                 </p>
 
                 {/* Statistiques d'abonnements */}
-                <div className="flex flex-wrap items-center gap-8 text-gray-700 mb-6">
+                <div className="flex flex-wrap items-center gap-8 text-foreground/80 mb-6">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-xl">{user.followingCount}</span>
-                        <span className="text-gray-500">Abonnements</span>
+                        <span className="font-bold text-foreground text-xl">{user.followingCount}</span>
+                        <span className="opacity-60">Abonnements</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-xl">{user.followersCount}</span>
-                        <span className="text-gray-500">Abonnés</span>
+                        <span className="font-bold text-foreground text-xl">{user.followersCount}</span>
+                        <span className="opacity-60">Abonnés</span>
                     </div>
                 </div>
 
                 {/* Dates */}
-                <div className="flex flex-wrap gap-8 text-sm text-gray-500 pt-6 border-t border-gray-100">
+                <div className="flex flex-wrap gap-8 text-sm opacity-60 pt-6 border-t border-border">
                     <div className="flex items-center gap-2">
                         <FaCalendarAlt />
                         <span><strong>Créé le :</strong> {formatDate(user.createdAt)}</span>
@@ -214,18 +233,18 @@ export default function UserPage({ params }) {
                 </div>
             </div>
 
-            {/* FIL DES TWEETS (En bas) */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            {/* FIL DES POSTS (En bas) */}
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
 
-                <div className="p-5 border-b border-gray-200 bg-gray-50">
-                    <h2 className="text-xl font-bold text-gray-900">
+                <div className="p-5 border-b border-border bg-secondary/15">
+                    <h2 className="text-xl font-bold text-foreground">
                         Posts de {user.userDisplayName}
                     </h2>
                 </div>
 
                 <div className="flex flex-col">
                     {tweetsError ? (
-                        <div className="p-16 text-center text-red-500 bg-red-500/5 font-medium border-t border-gray-100">
+                        <div className="p-16 text-center text-red-500 bg-red-500/5 font-medium border-t border-border">
                             {tweetsError}
                         </div>
                     ) : tweets && tweets.length > 0 ? (
@@ -233,7 +252,7 @@ export default function UserPage({ params }) {
                             <OneTweet key={tweet._id} tweet={tweet} />
                         ))
                     ) : (
-                        <div className="p-16 text-center text-gray-500 text-lg">
+                        <div className="p-16 text-center opacity-60 text-lg">
                             Aucun post à afficher pour le moment.
                         </div>
                     )}
