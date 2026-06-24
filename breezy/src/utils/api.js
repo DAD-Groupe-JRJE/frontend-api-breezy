@@ -308,3 +308,17 @@ export const unfollowUser = async (userId) => {
         throw error;
     }
 };
+
+export const updateConnectedUserProfile = async (profileData) => {
+    try {
+        const response = await apiClient.patch("/api/users/me", profileData);
+        if (response.data && response.data.user) {
+            localStorage.setItem("breezy_user", JSON.stringify(response.data.user));
+            window.dispatchEvent(new Event("auth-change"));
+        }
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du profil :", error);
+        throw error;
+    }
+};
