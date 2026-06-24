@@ -7,11 +7,24 @@ import OneTweet from "./OneTweet"; // Ajuste le chemin selon où tu as placé to
 export default function ListTweet({ type = "all" }) {
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
     const [error, setError] = useState("");
     const [isGuest, setIsGuest] = useState(false);
 
+    // Reset state when feed type changes
     useEffect(() => {
-        // Vérification de la présence d'un token avant d'initier la requête
+        setTweets([]);
+        setPage(1);
+        setHasMore(true);
+        setLoading(true);
+        setLoadingMore(false);
+        setError("");
+        setIsGuest(false);
+    }, [type]);
+
+    useEffect(() => {
         const token = localStorage.getItem("breezy_jwt");
         if (!token) {
             setIsGuest(true);
@@ -19,11 +32,40 @@ export default function ListTweet({ type = "all" }) {
             return;
         }
 
+        let isCurrent = true;
+
         const fetchTweets = async () => {
+            const isInitial = page === 1;
+            if (isInitial) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
             try {
-                const data = type === "followed" ? await getFollowedTweets() : await getAllTweets();
-                setTweets(data || []);
+                const data = type === "followed" 
+                    ? await getFollowedTweets(page, 15) 
+                    : await getAllTweets(page, 15);
+
+                if (!isCurrent) return;
+
+                const newTweets = data || [];
+                if (isInitial) {
+                    setTweets(newTweets);
+                } else {
+                    setTweets((prev) => {
+                        // Avoid duplicates in case of quick edits or timing gaps
+                        const existingIds = new Set(prev.map(t => t._id));
+                        const filteredNew = newTweets.filter(t => !existingIds.has(t._id));
+                        return [...prev, ...filteredNew];
+                    });
+                }
+
+                if (newTweets.length < 15) {
+                    setHasMore(false);
+                }
             } catch (err) {
+                if (!isCurrent) return;
                 console.error("Error fetching tweets:", err);
                 if (err.status === 401 || err.response?.status === 401) {
                     setIsGuest(true);
@@ -31,14 +73,40 @@ export default function ListTweet({ type = "all" }) {
                     setError(err.message || "Impossible de charger les tweets.");
                 }
             } finally {
-                setLoading(false);
+                if (isCurrent) {
+                    setLoading(false);
+                    setLoadingMore(false);
+                }
             }
         };
 
         fetchTweets();
-    }, [type]);
 
-    if (loading) {
+        return () => {
+            isCurrent = false;
+        };
+    }, [type, page]);
+
+    // Setup scroll listener to load more tweets
+    useEffect(() => {
+        const handleScroll = () => {
+            if (loading || loadingMore || !hasMore) return;
+
+            const scrollHeight = document.documentElement.scrollHeight;
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const clientHeight = document.documentElement.clientHeight;
+
+            // Trigger when scrolled near the bottom (within 150px)
+            if (scrollTop + clientHeight >= scrollHeight - 150) {
+                setPage((prevPage) => prevPage + 1);
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [loading, loadingMore, hasMore]);
+
+    if (loading && page === 1) {
         return (
             <div className="p-8 text-center text-gray-500">
                 Chargement des messages...
@@ -79,16 +147,27 @@ export default function ListTweet({ type = "all" }) {
     }
 
     return (
-        <div className="w-full bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-250">
-            {/* On parcourt le tableau de tweets.
-              On utilise .toReversed() pour afficher les plus récents en haut
-            */}
-            {tweets.toReversed().map((tweet) => (
-                <OneTweet
-                    key={tweet._id} // Mongoose génère un _id, il est crucial pour React
-                    tweet={tweet}
-                />
-            ))}
+        <div className="w-full flex flex-col gap-4">
+            <div className="w-full bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-250">
+                {tweets.map((tweet) => (
+                    <OneTweet
+                        key={tweet._id} // Mongoose génère un _id, il est crucial pour React
+                        tweet={tweet}
+                    />
+                ))}
+            </div>
+
+            {loadingMore && (
+                <div className="p-4 text-center text-sm text-foreground/60 bg-card border border-border rounded-xl shadow-sm animate-pulse">
+                    Chargement des messages suivants...
+                </div>
+            )}
+
+            {!hasMore && tweets.length > 0 && (
+                <div className="p-4 text-center text-sm text-foreground/40 font-medium">
+                    Vous avez vu tous les messages.
+                </div>
+            )}
         </div>
     );
 }

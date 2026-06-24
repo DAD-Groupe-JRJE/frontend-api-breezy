@@ -123,27 +123,27 @@ export const createNewTweet = async (content, belongTo = null) => {
         const response = await apiClient.post("/api/tweet", payload);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la création du tweet :", error);
+        console.error("Erreur lors de la création du post :", error);
         throw error;
     }
 };
 
-export const getAllTweets = async () => {
+export const getAllTweets = async (page = 1, limit = 15) => {
     try {
-        const response = await apiClient.get("/api/tweet");
+        const response = await apiClient.get(`/api/tweet?page=${page}&limit=${limit}`);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la récupération des tweets :", error);
+        console.error("Erreur lors de la récupération des posts :", error);
         throw error;
     }
 }
 
-export const getFollowedTweets = async () => {
+export const getFollowedTweets = async (page = 1, limit = 15) => {
     try {
-        const response = await apiClient.get("/api/tweet/followed");
+        const response = await apiClient.get(`/api/tweet/followed?page=${page}&limit=${limit}`);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la récupération des tweets suivis :", error);
+        console.error("Erreur lors de la récupération des posts suivis :", error);
         throw error;
     }
 }
@@ -153,7 +153,7 @@ export const getOneTweet = async (idTweet) => {
         const response = await apiClient.get("/api/tweet/" + idTweet);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la récupération du tweet :", error);
+        console.error("Erreur lors de la récupération du post :", error);
         throw error;
     }
 }
@@ -173,7 +173,17 @@ export const getTweetsByUser = async (userId) => {
         const response = await apiClient.get("/api/tweet/user/" + userId);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la récupération des tweets de l'utilisateur :", error);
+        console.error("Erreur lors de la récupération des posts de l'utilisateur :", error);
+        throw error;
+    }
+}
+
+export const updateTweet = async (tweetId, content) => {
+    try {
+        const response = await apiClient.put("/api/tweet/" + tweetId, { content });
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la modification du post :", error);
         throw error;
     }
 }

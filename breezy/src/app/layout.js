@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import MobileHeader from "@/components/MobileHeader";
+import MobileNav from "@/components/MobileNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AuthGuard from "@/components/AuthGuard";
 
@@ -19,15 +21,6 @@ export const metadata = {
   description: "Personnalisez votre expérience visuelle sur Breezy",
 };
 
-const themeScript = `
-  (function() {
-    try {
-      const savedTheme = localStorage.getItem('theme') || 'system';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } catch (e) {}
-  })()
-`;
-
 export default function RootLayout({ children }) {
   return (
     <html
@@ -35,16 +28,28 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      {/* <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head> */}
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-250"
+      <body className="min-h-full bg-background text-foreground transition-colors duration-250"
         cz-shortcut-listen="true"
       >
         <ThemeProvider>
           <AuthGuard>
-            <Navbar />
-            {children}
+            <div className="flex min-h-screen w-full">
+              {/* Left Sidebar Menu */}
+              <Sidebar />
+              
+              {/* Main Content Area */}
+              <div className="flex-1 flex flex-col min-h-screen md:pl-64 pb-20 md:pb-0">
+                {/* Mobile top header */}
+                <MobileHeader />
+                
+                <div className="flex-1 w-full max-w-3xl mx-auto border-l border-r border-border">
+                  {children}
+                </div>
+              </div>
+
+              {/* Mobile bottom navigation bar */}
+              <MobileNav />
+            </div>
           </AuthGuard>
         </ThemeProvider>
       </body>
