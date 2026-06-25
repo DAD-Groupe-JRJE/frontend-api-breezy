@@ -5,10 +5,14 @@
 ```mermaid
 graph TB
     subgraph CLIENT["🖥️ Client (Navigateur)"]
-        NEXT["Frontend Next.js<br/>localhost:3000"]
+        BROWSER["Navigateur Web"]
     end
 
-    subgraph DOCKER["🐳 Docker Compose — app-network"]
+    subgraph DOCKER_FRONT["🐳 Docker Compose (Frontend)"]
+        NEXT["Frontend Next.js<br/>Container: frontend<br/>Port 3000:3000"]
+    end
+
+    subgraph DOCKER_BACK["🐳 Docker Compose (Backend) — app-network"]
         subgraph GW["🚪 API Gateway"]
             NGINX["Nginx<br/>Port 8080:80"]
         end
@@ -24,7 +28,9 @@ graph TB
         end
     end
 
-    NEXT -- "HTTP :8080" --> NGINX
+    BROWSER -- "Visite l'UI (:3000)" --> NEXT
+    BROWSER -- "Appels API (CORS) (:8080)" --> NGINX
+    NEXT -- "Appels SSR (:8080)" --> NGINX
     NGINX -- "/api/auth/*<br/>/api/users/*<br/>/login /register<br/>/api/docs/*" --> AUTH
     NGINX -- "/api/tweet/*<br/>/api/tweet/uploads/*" --> POST
     AUTH -- "SQL (Sequelize)" --> POSTGRES
@@ -216,13 +222,14 @@ sequenceDiagram
 
 ## 🐳 Conteneurs Docker (état actuel)
 
-| Conteneur | Image | Port exposé | Rôle |
-|---|---|---|---|
-| `gateway` | nginx:1.29.1-alpine | **8080** → 80 | Reverse proxy / API Gateway |
-| `auth-service` | Build local (Node 24) | interne 3000 | API Authentification & Utilisateurs |
-| `auth-postgres` | postgres:17-alpine | 5432 | Base de données relationnelle |
-| `post-service` | Build local (Node 20) | interne 3333 | API Posts / Tweets (avec volume `post-uploads`) |
-| `post-mongodb` | mongo:6-jammy | 27018 → 27017 | Base de données documents |
+| Conteneur | Image | Port exposé | Rôle | Orchestrateur |
+|---|---|---|---|---|
+| `frontend` | Build local (Node 20) | **3000** | Interface utilisateur (Next.js) | `frontend-api-breezy` |
+| `gateway` | nginx:1.29.1-alpine | **8080** → 80 | Reverse proxy / API Gateway | `backend-user-breezy` |
+| `auth-service` | Build local (Node 24) | interne 3000 | API Authentification & Utilisateurs | `backend-user-breezy` |
+| `auth-postgres` | postgres:17-alpine | 5432 | Base de données relationnelle | `backend-user-breezy` |
+| `post-service` | Build local (Node 20) | interne 3333 | API Posts / Tweets | `backend-user-breezy` |
+| `post-mongodb` | mongo:6-jammy | 27018 → 27017 | Base de données documents | `backend-user-breezy` |
 
 ---
 
