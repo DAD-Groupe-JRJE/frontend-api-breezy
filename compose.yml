@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: ./breezy
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"

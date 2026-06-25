@@ -21,7 +21,7 @@ export default function Tweet({ params }) {
             const fetchedResponses = await getTweetsResponse(id);
             setResponses(fetchedResponses || []);
         } catch (err) {
-            setErrorMsg(err.message || "Impossible de charger ce tweet ou ses réponses.");
+            setErrorMsg(err.message || "Impossible de charger ce post ou ses réponses.");
         } finally {
             setLoading(false);
         }
@@ -54,7 +54,7 @@ export default function Tweet({ params }) {
             // On recharge les données pour afficher le nouveau commentaire
             await loadData();
         } catch (error) {
-            console.error("Erreur lors de la réponse au tweet :", error);
+            console.error("Erreur lors de la réponse au post :", error);
             alert(error.message || "Erreur lors de la publication de la réponse.");
         }
     }
@@ -62,7 +62,7 @@ export default function Tweet({ params }) {
     if (loading) {
         return (
             <div className="max-w-2xl mx-auto mt-12 p-6 text-center text-gray-500">
-                Chargement du tweet...
+                Chargement du post...
             </div>
         );
     }
@@ -70,7 +70,7 @@ export default function Tweet({ params }) {
     if (errorMsg || !tweet) {
         return (
             <div className="max-w-2xl mx-auto mt-12 p-6 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-center font-medium">
-                {errorMsg || "Impossible de charger ce tweet ou ses réponses. Il a peut-être été supprimé."}
+                {errorMsg || "Impossible de charger ce post ou ses réponses. Il a peut-être été supprimé."}
             </div>
         );
     }

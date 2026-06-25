@@ -66,11 +66,11 @@ export default function ListTweet({ type = "all" }) {
                 }
             } catch (err) {
                 if (!isCurrent) return;
-                console.error("Error fetching tweets:", err);
+                console.error("Error fetching posts:", err);
                 if (err.status === 401 || err.response?.status === 401) {
                     setIsGuest(true);
                 } else {
-                    setError(err.message || "Impossible de charger les tweets.");
+                    setError(err.message || "Impossible de charger les posts.");
                 }
             } finally {
                 if (isCurrent) {
@@ -109,7 +109,7 @@ export default function ListTweet({ type = "all" }) {
     if (loading && page === 1) {
         return (
             <div className="p-8 text-center text-gray-500">
-                Chargement des messages...
+                Chargement des posts...
             </div>
         );
     }
@@ -120,8 +120,8 @@ export default function ListTweet({ type = "all" }) {
                 <p className="font-semibold mb-2">Bienvenue sur Breezy !</p>
                 <p className="text-sm opacity-80 mb-4">
                     {type === "followed" 
-                        ? "Veuillez vous connecter pour voir les messages de vos abonnements." 
-                        : "Veuillez vous connecter pour voir le flux chronologique des messages."}
+                        ? "Veuillez vous connecter pour voir les posts de vos abonnements." 
+                        : "Veuillez vous connecter pour voir le flux chronologique des posts."}
                 </p>
             </div>
         );
@@ -140,8 +140,8 @@ export default function ListTweet({ type = "all" }) {
         return (
             <div className="p-8 text-center text-gray-500 bg-secondary/10 rounded-xl border border-dashed border-border mt-4">
                 {type === "followed" 
-                    ? "Aucun message de vos abonnements. Suivez d'autres utilisateurs pour voir leurs tweets !" 
-                    : "Aucun tweet n'a été publié. Soyez le premier !"}
+                    ? "Aucun message de vos abonnements. Suivez d'autres utilisateurs pour voir leurs posts !" 
+                    : "Aucun post n'a été publié. Soyez le premier !"}
             </div>
         );
     }

@@ -110,7 +110,7 @@ export const getStoredUserId = () => {
     return null; // Plus d'identifiant en dur !
 };
 
-export const createNewTweet = async (content, belongTo = null) => {
+export const createNewTweet = async (content, belongTo = null, mediaData = null, mediaName = null) => {
     try {
         const userId = getStoredUserId();
         const payload = {
@@ -120,10 +120,14 @@ export const createNewTweet = async (content, belongTo = null) => {
         if (belongTo) {
             payload.belongTo = belongTo;
         }
+        if (mediaData) {
+            payload.mediaData = mediaData;
+            payload.mediaName = mediaName;
+        }
         const response = await apiClient.post("/api/tweet", payload);
         return response.data;
     } catch (error) {
-        console.error("Erreur lors de la création du post :", error);
+        console.error("Erreur lors de la création du tweet :", error);
         throw error;
     }
 };
@@ -316,5 +320,39 @@ export const unfollowUser = async (userId) => {
     } catch (error) {
         console.error("Erreur lors de l'arrêt du suivi de l'utilisateur :", error);
         throw error;
+    }
+};
+
+export const updateConnectedUserProfile = async (profileData) => {
+    try {
+        const response = await apiClient.patch("/api/users/me", profileData);
+        if (response.data && response.data.user) {
+            localStorage.setItem("breezy_user", JSON.stringify(response.data.user));
+            window.dispatchEvent(new Event("auth-change"));
+        }
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du profil :", error);
+        throw error;
+    }
+};
+
+export const searchUsers = async (query) => {
+    try {
+        const response = await apiClient.get(`/api/users/action/search?q=${encodeURIComponent(query)}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la recherche des utilisateurs :", error);
+        return [];
+    }
+};
+
+export const searchTweets = async (query) => {
+    try {
+        const response = await apiClient.get(`/api/tweet/action/search?q=${encodeURIComponent(query)}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la recherche des tweets :", error);
+        return [];
     }
 };
