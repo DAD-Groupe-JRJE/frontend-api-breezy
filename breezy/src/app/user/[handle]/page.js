@@ -56,7 +56,7 @@ export default function UserPage({ params }) {
         
         const DISPLAY_NAME_REGEX = /^[a-zA-Z0-9\s\-_'’À-ÿ]{2,30}$/;
         if (!DISPLAY_NAME_REGEX.test(editDisplayName)) {
-            setEditError("Le nom d'affichage doit contenir entre 2 et 30 caractères.");
+            setEditError("Le nom d'utilisateur doit contenir entre 2 et 30 caractères (lettres, chiffres et '_' uniquement).");
             return;
         }
 

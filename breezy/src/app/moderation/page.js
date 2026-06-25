@@ -116,7 +116,7 @@ export default function ModerationPage() {
             return;
         }
         if (!DISPLAY_NAME_REGEX.test(displayName)) {
-            setCreateError("Le nom d'affichage doit contenir entre 2 et 30 caractères.");
+            setCreateError("Le nom d'affichage doit contenir entre 2 et 30 caractères (lettres, chiffres et '_' uniquement).");
             return;
         }
         if (!PASSWORD_REGEX.test(password)) {
